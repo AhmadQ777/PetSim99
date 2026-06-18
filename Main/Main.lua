@@ -199,12 +199,12 @@ return function ()
         repeat
             print("API data 2")
             local Success, Result = pcall(function()
-                return request({Url = Const.DATA.API, Method = "GET"})
+                return game:HttpGet(Const.DATA.API)
             end)
             print("API data 3")
             if Success and Result ~= nil and Result.StatusCode == 200 then
                 print("API data 4")
-                Data = HttpService:JSONDecode(Result.Body)
+                Data = HttpService:JSONDecode(Result)
                 Data.LAST_API_REQUEST = os.time()
                 local Success, Result = pcall(writefile, Const.DATA.PATH.PETS_DATA, HttpService:JSONEncode(Data))
                 HasToUpdate = false
