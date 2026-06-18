@@ -223,6 +223,8 @@ return function ()
 
     local function GetPlayerInventory()
         if game.PlaceId == Const.GAME.TRADING_PLAZA_PLACE_ID then
+            print("Trying to tp")
+            task.wait(15)
             Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
             return
         end
