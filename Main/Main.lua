@@ -249,7 +249,7 @@ return function ()
         print("5")
         PlayerInv.PlayerState = Const.STATE.IDLE
         local Success, Result = pcall(function()
-            writefile(Const.DATA.PATH.PLAYER_INV, PlayerInv)
+            writefile(Const.DATA.PATH.PLAYER_INV, HttpService:JSONEncode(PlayerInv))
         end)
         print("6")
         if Success then PlayerInventoryDataSaved = true end
