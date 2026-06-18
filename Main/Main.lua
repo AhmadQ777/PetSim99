@@ -241,6 +241,7 @@ return function ()
         for _, Pet in ipairs(Const.INSTANCE.EQUIPPED_PETS:GetChildren()) do
             if Pet.ClassName == "TextButton" and Pet.Strength.ContentText == "???" then
                 if Data[Pet.Icon.Image] ~= nil then
+                    print(Data)
                     PlayerInv[Pet:GetAttribute("PetUID")] = Data[Pet.Icon.Image]
                 end
             end
