@@ -225,7 +225,7 @@ return function ()
             return
         end
         print("1")
-        while HasToUpdate do
+        while HasToUpdate and Data ~= nil do
             GetAPIData()
             TaskFinished.Event:Wait()
         end
@@ -236,7 +236,9 @@ return function ()
         print("4")
         for _, Pet in ipairs(Const.INSTANCE.EQUIPPED_PETS:GetChildren()) do
             if Pet.ClassName == "TextButton" and Pet.Strength.ContentText == "???" then
-                PlayerInv[Pet:GetAttribute("PetUID")] = Data[Pet.Icon.Image]
+                if Data[Pet.Icon.Image] ~= nil then
+                    PlayerInv[Pet:GetAttribute("PetUID")] = Data[Pet.Icon.Image]
+                end
             end
         end
         print("5")
