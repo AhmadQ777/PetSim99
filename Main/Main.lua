@@ -247,6 +247,9 @@ return function ()
                 end
             end
         end
+        for key, value in pairs(PlayerInv) do
+            print(key, value)
+        end
         print("5")
         PlayerInv.PlayerState = Const.STATE.IDLE
         local Success, Result = pcall(function()
@@ -415,14 +418,14 @@ return function ()
             return
         end
         if PlayerState == Const.STATE.SELLING then
+            print("Activating Process")
             Process()
         end
-        print("Create1")
+        print("Finished Create")
     end
     print("Create")
     OnCreate()
 
     task.wait(Const.WAIT.SHORT)
-    print("PlayerState")
-    print(PlayerState)
+    print("PlayerState" .. PlayerState)
 end
