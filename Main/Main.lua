@@ -318,9 +318,9 @@ return function ()
         else
             print("6")
             GetAPIData()
-            TaskFinished.Event:Wait()
             print("7")
         end
+        task.wait(10)
         print("Create")
         --// Get PlayerInventory
         local Success, Result = pcall(function()
