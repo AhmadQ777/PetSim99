@@ -206,7 +206,9 @@ return function ()
                 print("API data 4")
                 Data = HttpService:JSONDecode(Result)
                 Data.LAST_API_REQUEST = os.time()
-                local Success, Result = pcall(writefile, Const.DATA.PATH.PETS_DATA, HttpService:JSONEncode(Data))
+                local Success, Result = pcall(function()
+                    writefile(Const.DATA.PATH.PETS_DATA, HttpService:JSONEncode(Data))
+                end)
                 HasToUpdate = false
                 print("API data 5")
                 break
@@ -333,6 +335,9 @@ return function ()
         else
             print("6")
             GetAPIData()
+            TaskFinished.Event:Wait()
+            print("Waited")
+            print(Data)
             print("7")
         end
         
