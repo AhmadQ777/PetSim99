@@ -21,10 +21,10 @@ return function ()
     local Const = {
         INSTANCE = {
             DIAMONDS = Player:WaitForChild("leaderstats"):WaitForChild("💎 Diamonds"),
-            UNCLAIMED_BOOTHS = game.Workspace:FindFirstChild("TradingPlaza"):WaitForChild("BoothSpawns"),
-            CLAIMED_BOOTHS = game.Workspace:WaitForChild("__THINGS"):FindFirstChild("Booths"),
             PLAYER_INVENTORY = Player:WaitForChild("PlayerGui"):WaitForChild("Inventory"),
-            EQUIPPED_PETS = Player:WaitForChild("PlayerGui"):WaitForChild("Inventory"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Pets"):WaitForChild("EquippedPets")
+            EQUIPPED_PETS = Player:WaitForChild("PlayerGui"):WaitForChild("Inventory"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Pets"):WaitForChild("EquippedPets"),
+            UNCLAIMED_BOOTHS = game.Workspace:FindFirstChild("TradingPlaza"):FindFirstChild("BoothSpawns"),
+            CLAIMED_BOOTHS = game.Workspace:WaitForChild("__THINGS"):WaitForChild("Booths"),
         },
         DATA = {
             API = "https://raw.githubusercontent.com/AhmadQ777/PetSim99_API/refs/heads/main/ITEMS_DATA.json",
@@ -73,7 +73,7 @@ return function ()
 
 
     if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
-        Const.GAME.TRADING_PLAZA_ENTER_PORTAL_POSITION = game.Workspace:FindFirstChild("Map"):FindFirstChild("3 | Castle"):FindFirstChild("INTERACT"):FindFirstChild("TradingPlazaPortal"):FindFirstChild("Enter").Position
+        Const.GAME.TRADING_PLAZA_ENTER_PORTAL_POSITION = game.Workspace:WaitForChild("Map"):WaitForChild("3 | Castle"):WaitForChild("INTERACT"):WaitForChild("TradingPlazaPortal"):WaitForChild("Enter").Position
     end
 
 
