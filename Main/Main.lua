@@ -1,6 +1,7 @@
 return function ()
     --// Main
     --// Services
+    print("-----------")
     print("Services")
 
     local RS = game:GetService("RunService")
@@ -238,6 +239,7 @@ return function ()
     --// Events
     print("EVENTS")
     Players.PlayerRemoving:Connect(function(LeavingPlayer)
+        print("PlayerLeaving")
         if LeavingPlayer.UserId == UserId and not PlayerInventoryDataSaved then
             repeat
                 local Success, Result = pcall(function()
@@ -291,7 +293,7 @@ return function ()
     local function OnCreate()
         print("Create3")
         local PlayerInvSuccess = false
-
+        print("print")
         --// Get Data
         local Success, Result = pcall(function()
             print("1")
