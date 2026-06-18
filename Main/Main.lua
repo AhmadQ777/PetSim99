@@ -89,7 +89,6 @@ return function ()
     local HasToUpdate = false
     local PlayerInventoryDataSaved = false
 
-    local Done = false
     local TaskFinished = Instance.new("BindableEvent")
     TaskFinished.Parent = game.Workspace
 
@@ -240,7 +239,6 @@ return function ()
             Attempts += 1
         until Attempts >= Const.DATA.MAX_ATTEMPTS
         print("API data 6")
-        Done = true
     end
 
 
@@ -302,6 +300,7 @@ return function ()
         print("Create3")
         local PlayerInvSuccess = false
         print("print")
+        --[[
         --// Get Data
         local Success, Result = pcall(function()
             print("1")
@@ -321,6 +320,7 @@ return function ()
             GetAPIData()
             print("7")
         end
+        ]]
         print("Create")
         --// Get PlayerInventory
         local Success, Result = pcall(function()
