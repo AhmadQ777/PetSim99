@@ -16,6 +16,9 @@ return function ()
     local UserId = Player.UserId
 
 
+    --// Initialize Varaibles to check
+    local TradingPlaza = game.Workspace:FindFirstChild("TradingPlaza")
+
     --// Const Variables
     print("Const")
     local Const = {
@@ -23,8 +26,8 @@ return function ()
             DIAMONDS = Player:WaitForChild("leaderstats"):WaitForChild("💎 Diamonds"),
             PLAYER_INVENTORY = Player:WaitForChild("PlayerGui"):WaitForChild("Inventory"),
             EQUIPPED_PETS = Player:WaitForChild("PlayerGui"):WaitForChild("Inventory"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Pets"):WaitForChild("EquippedPets"),
-            UNCLAIMED_BOOTHS = game.Workspace:FindFirstChild("TradingPlaza"):FindFirstChild("BoothSpawns"),
             CLAIMED_BOOTHS = game.Workspace:WaitForChild("__THINGS"):WaitForChild("Booths"),
+            CHECK_UNCLAIMED_BOOTHS =  TradingPlaza and TradingPlaza:FindFirstChild("BoothSpawns"),
         },
         DATA = {
             API = "https://raw.githubusercontent.com/AhmadQ777/PetSim99_API/refs/heads/main/ITEMS_DATA.json",
