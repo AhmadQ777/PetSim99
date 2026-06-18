@@ -221,6 +221,7 @@ return function ()
         print("API data 6")
         print("Finished 1")
         TaskFinished:Fire()
+        task.wait(Const.WAIT.SHORT)
         print("Finished 2")
     end
 
