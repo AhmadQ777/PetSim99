@@ -156,28 +156,6 @@ return function ()
     end
 
 
-    local function GetPlayerInventory()
-        if game.PlaceId == Const.GAME.TRADING_PLAZA_PLACE_ID then
-            Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
-            return
-        end
-        while not (Const.INSTANCE.PLAYER_INVENTORY.Enabled and Data ~= nil) do
-            task.wait(Const.WAIT.SHORT)
-        end
-        for _, Pet in ipairs(Const.INSTANCE.EQUIPPED_PETS:GetChildren()) do
-            if Pet.ClassName == "TextButton" and Pet.Strength.ContentText == "???" then
-                PlayerInv[Pet:GetAttribute("PetUID")] = Data[Pet.Icon.Image]
-            end
-        end
-        PlayerInv.PlayerState = Const.STATE.IDLE
-        local Success, Result = pcall(function()
-            writefile(Const.DATA.PATH.PLAYER_INV, PlayerInv)
-        end)
-        if Success then PlayerInventoryDataSaved = true end
-        Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
-    end
-
-
     local function IsServerViable()
         TaskFinished:Fire()
         return #Players:GetChildren() >= Const.GAME.MINIMUM_PLAYERS
@@ -239,7 +217,39 @@ return function ()
             Attempts += 1
         until Attempts >= Const.DATA.MAX_ATTEMPTS
         print("API data 6")
+        TaskFinished.Event:Fire()
     end
+
+    local function GetPlayerInventory()
+        if game.PlaceId == Const.GAME.TRADING_PLAZA_PLACE_ID then
+            Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
+            return
+        end
+        print("1")
+        while HasToUpdate do
+            GetAPIData()
+            TaskFinished.Event:Wait()
+        end
+        print("2")
+        while not Const.INSTANCE.PLAYER_INVENTORY.Enabled do
+            task.wait(Const.WAIT.SHORT)
+        end
+        print("4")
+        for _, Pet in ipairs(Const.INSTANCE.EQUIPPED_PETS:GetChildren()) do
+            if Pet.ClassName == "TextButton" and Pet.Strength.ContentText == "???" then
+                PlayerInv[Pet:GetAttribute("PetUID")] = Data[Pet.Icon.Image]
+            end
+        end
+        print("5")
+        PlayerInv.PlayerState = Const.STATE.IDLE
+        local Success, Result = pcall(function()
+            writefile(Const.DATA.PATH.PLAYER_INV, PlayerInv)
+        end)
+        print("6")
+        if Success then PlayerInventoryDataSaved = true end
+        Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
+    end
+
 
 
     --// Events
@@ -297,10 +307,8 @@ return function ()
     --// Starting Code
     print("OnCreate")
     local function OnCreate()
-        print("Create3")
         local PlayerInvSuccess = false
-        print("print")
-        --[[
+
         --// Get Data
         local Success, Result = pcall(function()
             print("1")
@@ -318,9 +326,10 @@ return function ()
         else
             print("6")
             GetAPIData()
+            TaskFinished.Event:Wait()
             print("7")
         end
-        ]]
+        
         print("Create")
         --// Get PlayerInventory
         local Success, Result = pcall(function()
@@ -335,10 +344,6 @@ return function ()
         else
             print("Player 3")
             PlayerInv.PlayerState = Const.STATE.GETTING_PLAYER_INVENTORY
-            while HasToUpdate do
-                GetAPIData()
-                TaskFinished.Event:Wait()
-            end
             print("Player 1")
             GetPlayerInventory()
             return
