@@ -89,9 +89,6 @@ return function ()
     local HasToUpdate = false
     local PlayerInventoryDataSaved = false
 
-    local TaskFinished = Instance.new("BindableEvent")
-    TaskFinished.Parent = game.Workspace
-
     local PlayerState = Const.STATE.IDLE
 
 
@@ -139,7 +136,6 @@ return function ()
                 }
             }
         })
-        TaskFinished:Fire()
     end
 
 
@@ -157,7 +153,6 @@ return function ()
 
 
     local function IsServerViable()
-        TaskFinished:Fire()
         return #Players:GetChildren() >= Const.GAME.MINIMUM_PLAYERS
     end
 
@@ -172,7 +167,6 @@ return function ()
             workspace:WaitForChild("__THINGS"):WaitForChild("Booths"):WaitForChild("Model"):WaitForChild("Pets"):WaitForChild("Booths_CreateListing"):InvokeServer(unpack(args))
             task.wait(Const.WAIT.SHORT)
         end
-        TaskFinished:Fire()
     end
 
 
@@ -189,7 +183,6 @@ return function ()
             end
             return false
         end)()
-        TaskFinished:Fire()
     end
 
 
@@ -307,7 +300,6 @@ return function ()
                 if Task.Counter >= Task.Interval then
                     Task.Counter = 0
                     Task.Callback()
-                    TaskFinished.Event:Wait()
                 end
             end
         end
@@ -317,7 +309,6 @@ return function ()
     --// Starting Code
     print("OnCreate")
     local function OnCreate()
-        TaskFinished:Fire()
         local PlayerInvSuccess = false
 
         --// Get Data
@@ -370,7 +361,6 @@ return function ()
                 end
                 if HugeAmount >= Const.GAME.MINIMUM_HUGE then
                     local Result = IsServerViable()
-                    TaskFinished.Event:Wait()
                     if Result then
                         PlayerInv.PlayerState = Const.STATE.SELLING
                     else
@@ -391,16 +381,13 @@ return function ()
                 return
             end
             ScanMarketplace()
-            TaskFinished.Event:Wait()
         elseif PlayerState == Const.STATE.SELLING then
             if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
                 Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
                 return
             end
             ClaimBooth()
-            TaskFinished.Event:Wait()
             CreateListing()
-            TaskFinished.Event:Wait()
         elseif PlayerState == Const.STATE.GETTING_PLAYER_INVENTORY then
             if game.PlaceId == Const.GAME.TRADING_PLAZA_PLACE_ID then
                 Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
