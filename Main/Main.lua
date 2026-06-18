@@ -216,22 +216,29 @@ return function ()
 
 
     local function GetAPIData()
+        print("API data 1")
         local Attempts = 0
         repeat
+            print("API data 2")
             local Success, Result = pcall(function()
                 return request({Url = Const.DATA.API, Method = "GET"})
             end)
+            print("API data 3")
             if Success and Result ~= nil and Result.StatusCode == 200 then
+                print("API data 4")
                 Data = HttpService:JSONDecode(Result.Body)
                 Data.LAST_API_REQUEST = os.time()
                 local Success, Result = pcall(writefile, Const.DATA.PATH.PETS_DATA, HttpService:JSONEncode(Data))
                 HasToUpdate = false
+                print("API data 5")
                 break
             else
+                print("API data 3.5")
                 task.wait(Const.WAIT.NORMAL)
             end
             Attempts += 1
         until Attempts >= Const.DATA.MAX_ATTEMPTS
+        print("API data 6")
         TaskFinished:Fire()
     end
 
