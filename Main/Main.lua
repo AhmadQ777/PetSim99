@@ -294,16 +294,23 @@ return function ()
 
         --// Get Data
         local Success, Result = pcall(function()
+            print("1")
             return readfile(Const.DATA.PATH.PETS_DATA)
         end)
+        print("2")
         if Success and Result ~= nil then
+            print("3")
             Data = HttpService:JSONDecode(Result)
+            print("4")
             if os.time() - (Data.LAST_API_REQUEST or os.time()) >= Tasks.API.Interval then
                 HasToUpdate = true
             end
+            print("5")
         else
+            print("6")
             GetAPIData()
             TaskFinished.Event:Wait()
+            print("7")
         end
         print("Create")
         --// Get PlayerInventory
@@ -389,5 +396,6 @@ return function ()
     OnCreate()
 
     task.wait(Const.WAIT.SHORT)
+    print("PlayerState")
     print(PlayerState)
 end
