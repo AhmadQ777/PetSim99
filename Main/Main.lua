@@ -319,9 +319,6 @@ return function ()
         else
             print("6")
             GetAPIData()
-            while not Done do
-                task.wait()
-            end
             print("7")
         end
         print("Create")
