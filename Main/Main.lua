@@ -89,6 +89,7 @@ return function ()
     local HasToUpdate = false
     local PlayerInventoryDataSaved = false
 
+    local Done = false
     local TaskFinished = Instance.new("BindableEvent")
     TaskFinished.Parent = game.Workspace
 
@@ -239,7 +240,7 @@ return function ()
             Attempts += 1
         until Attempts >= Const.DATA.MAX_ATTEMPTS
         print("API data 6")
-        TaskFinished:Fire()
+        Done = true
     end
 
 
@@ -318,24 +319,30 @@ return function ()
         else
             print("6")
             GetAPIData()
+            while not Done do
+                task.wait()
+            end
             print("7")
         end
-        task.wait(10)
         print("Create")
         --// Get PlayerInventory
         local Success, Result = pcall(function()
+            print("Player 1")
             return readfile(Const.DATA.PATH.PLAYER_INV)
         end)
         if Success and Result ~= nil then
+            print("Player 2")
             PlayerInv = HttpService:JSONDecode(Result) 
             PlayerState = (PlayerInv.PlayerState or Const.STATE.IDLE)
             PlayerInvSuccess = true
         else
+            print("Player 3")
             PlayerInv.PlayerState = Const.STATE.GETTING_PLAYER_INVENTORY
             while HasToUpdate do
                 GetAPIData()
                 TaskFinished.Event:Wait()
             end
+            print("Player 1")
             GetPlayerInventory()
             return
         end
