@@ -217,7 +217,7 @@ return function ()
             Attempts += 1
         until Attempts >= Const.DATA.MAX_ATTEMPTS
         print("API data 6")
-        TaskFinished.Event:Fire()
+        TaskFinished:Fire()
     end
 
     local function GetPlayerInventory()
@@ -307,6 +307,7 @@ return function ()
     --// Starting Code
     print("OnCreate")
     local function OnCreate()
+        TaskFinished:Fire()
         local PlayerInvSuccess = false
 
         --// Get Data
