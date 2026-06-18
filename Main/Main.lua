@@ -202,7 +202,7 @@ return function ()
                 return game:HttpGet(Const.DATA.API)
             end)
             print("API data 3")
-            if Success and Result ~= nil and Result.StatusCode == 200 then
+            if Success and Result ~= nil then
                 print("API data 4")
                 Data = HttpService:JSONDecode(Result)
                 Data.LAST_API_REQUEST = os.time()
