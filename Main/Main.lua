@@ -236,6 +236,7 @@ return function ()
             task.wait(Const.WAIT.SHORT)
         end
         print("4")
+        task.wait(15)
         for _, Pet in ipairs(Const.INSTANCE.EQUIPPED_PETS:GetChildren()) do
             if Pet.ClassName == "TextButton" and Pet.Strength.ContentText == "???" then
                 if Data[Pet.Icon.Image] ~= nil then
@@ -355,6 +356,7 @@ return function ()
         end
         print("Create")
         --// Decide PlayerState
+        task.wait(15)
         if PlayerState ~= Const.STATE.GETTING_PLAYER_INVENTORY then
             local HugeAmount = 0
             if PlayerInvSuccess then
