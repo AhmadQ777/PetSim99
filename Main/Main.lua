@@ -217,6 +217,9 @@ return function ()
             Attempts += 1
         until Attempts >= Const.DATA.MAX_ATTEMPTS
         print("API data 6")
+        print("Finished 1")
+        TaskFinished:Fire()
+        print("Finished 2")
     end
 
     local function GetPlayerInventory()
@@ -228,6 +231,7 @@ return function ()
         while HasToUpdate and Data ~= nil do
             GetAPIData()
             TaskFinished.Event:Wait()
+            print("Waited")
         end
         print("2")
         while not Const.INSTANCE.PLAYER_INVENTORY.Enabled do
