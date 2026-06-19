@@ -329,7 +329,6 @@ return function ()
             print("6")
             GetAPIData()
             print(Data)
-            print("7")
         end
         
         print("Create")
