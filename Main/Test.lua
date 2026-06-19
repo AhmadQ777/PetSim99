@@ -1,3 +1,3 @@
 local TPS = game:GetService("TeleportService")
 local Player = game:GetService("Players").LocalPlayer
-TPS:Teleport(15502339080, Player)
+TPS:TeleportAsync(8737899170, {Player})
