@@ -1,27 +1,21 @@
 return function ()
     --// Main
     --// Services
-    print("-----------")
-    print("Services")
-
     local RS = game:GetService("RunService")
     local TPS = game:GetService("TeleportService")
     local Players = game:GetService("Players")
     local HttpService = game:GetService("HttpService")
 
     --// Player
-    print("Player")
     local Player = Players.LocalPlayer
     local Character = Player.Character or Player.CharacterAdded:Wait()
     local HRT = Character:WaitForChild("HumanoidRootPart")
     local UserId = Player.UserId
 
-
     --// Initialize Varaibles to check
     local TradingPlaza = game.Workspace:FindFirstChild("TradingPlaza")
 
-    --// Const Variables
-    print("Const")
+    --// Decalaring Const Var
     local Const = {
         INSTANCE = {
             DIAMONDS = Player:WaitForChild("leaderstats"):WaitForChild("💎 Diamonds"),
@@ -33,7 +27,7 @@ return function ()
         DATA = {
             API = "https://raw.githubusercontent.com/AhmadQ777/PetSim99_API/refs/heads/main/ITEMS_DATA.json",
             PATH = {
-                PLAYER_INV = "C:\\Users\\Amira\\AppData\\Local\\Xeno\\workspace\\PLAYER_INV.json";
+                PLAYER_INV = "C:\\Users\\Amira\\AppData\\Local\\Xeno\\workspace\\PLAYER_INV.json",
                 PETS_DATA = "C:\\Users\\Amira\\AppData\\Local\\Xeno\\workspace\\PETS_DATA.json"
             },
             MAX_ATTEMPTS = 20
@@ -62,8 +56,7 @@ return function ()
             },
         },
         STATE = {
-            GETTING_PLAYER_INVENTORY = "GettingPlayerInventory",
-            SEARCHING_IDEAL_SERVER_TO_SELL = "SearchIdealServerToSell",
+            GETTING_PLAYER_DATA = "GettingPlayerData",
             BUYING = "Buying",
             SELLING = "Selling",
             IDLE = "Idle"
@@ -82,23 +75,18 @@ return function ()
 
 
     --// Intialize Variables, Functions, Events
-    --// API Request/Data Handle Variables
-    print("Variables")
     local Data
-    local PlayerInv = {}
-    local PlayerInventoryDataSaved = false
-    local PlayerState = Const.STATE.IDLE
+    local PlayerData = {}
 
 
     --// Intialize Functions
-    print("Functions")
     local function Teleport(TeleportToPerform)
         if TeleportToPerform == Const.TELEPORT.ACTION.REHOP_SERVER then
             TPS:TeleportAsync(game.PlaceId, {Player})
         elseif TeleportToPerform == Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE then
             if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
                 HRT.Position = Const.GAME.TRADING_PLAZA_ENTER_PORTAL_POSITION
-            elseif game.PlaceId == Const.GAME.TRADING_PLAZA_PLACE_ID then
+            else
                 HRT:PivotTo(Const.TELEPORT.POSITION.HRT)
                 Const.TELEPORT.INSTANCE.CAMERA.CFrame = Const.TELEPORT.POSITION.CAMERA
                 Const.TELEPORT.INSTANCE.MESSAGE_GUI.Position = Const.TELEPORT.POSITION.MESSAGE_GUI
@@ -134,18 +122,52 @@ return function ()
                 }
             }
         })
+        task.wait(Const.WAIT.SHORT)
     end
 
 
     local function ScanMarketplace()
+        local ToBuy = {}
+        local RunningThreads = 0
         for _, Booth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
-            for _, Item in ipairs(Booth.Pets.BoothTop.PetScroll:GetChildren()) do
-                if Item.Holder.ItemSlot.Strength.ContentText == "???" and Item.ClassName == "Frame" and Data[Item.Holder.ItemSlot.Icon.Image] ~= nil then
-                    BuyItem(Booth:GetAttribute("Owner"), Item.Name)
-                    task.wait(Const.WAIT.SHORT)
+            if not Booth.Parent then
+                continue
+            end
+            local Pets = Booth:FindFirstChild("Pets")
+            local BoothTop = Pets and Pets:FindFirstChild("BoothTop")
+            local PetScroll = BoothTop and BoothTop:FindFirstChild("PetScroll")
+            if not PetScroll then
+                continue
+            end
+            RunningThreads += 1
+            task.spawn(function()
+                for _, Item in ipairs(PetScroll:GetChildren()) do
+                    if Item.Parent and Item.ClassName == "Frame" and Data[Item.Holder.ItemSlot.Icon.Image] ~= nil then
+                        table.insert(ToBuy, {
+                            Owner = Booth:GetAttribute("Owner"),
+                            Item = Item,
+                            ItemId = Item.Name
+                        })    
+                    end
+                end
+                task.wait()
+                RunningThreads -= 1
+            end)
+        end
+        while RunningThreads > 0 do
+            task.wait()
+        end
+        for _, ItemToBuy in ipairs(ToBuy) do
+            if ItemToBuy.Item and ItemToBuy.Item.Parent then
+                while ItemToBuy.Item:FindFirstChild("CircularBar") do
+                    task.wait()
+                end
+                if ItemToBuy.Item.Parent then
+                    BuyItem(ItemToBuy.Owner, ItemToBuy.ItemId)
                 end
             end
         end
+        task.wait(Const.WAIT.NORMAL)
         Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
     end
 
@@ -155,26 +177,13 @@ return function ()
     end
 
 
-    local function CreateListing()
-        for Hash, Value in pairs(PlayerInv) do
-            local args = {
-                Hash,                                                   -- ItemId
-                Value + Const.GAME.HUGE_SELLING_BASE_ADDED_AMOUNT,	    -- Price
-                1									                    -- Amount	
-            }
-            workspace:WaitForChild("__THINGS"):WaitForChild("Booths"):WaitForChild("Model"):WaitForChild("Pets"):WaitForChild("Booths_CreateListing"):InvokeServer(unpack(args))
-            task.wait(Const.WAIT.SHORT)
-        end
-    end
-
-
     local function ClaimBooth()
         repeat
-            local BoothId = game.Workspace:FindFirstChild("TradingPlaza"):WaitForChild("BoothSpawns"):GetChildren()[1]:GetAttribute("ID")
+            local BoothId = Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()[1]:GetAttribute("ID")
             game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Booths_ClaimBooth"):InvokeServer(tostring(BoothId))
         until (function()
-            task.wait(Const.WAIT.SHORT)
-            for _, ClaimedBooth in ipairs(game.Workspace:WaitForChild("__THINGS"):WaitForChild("Booths"):GetChildren()) do
+            task.wait(Const.WAIT.NORMAL)
+            for _, ClaimedBooth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
                 if ClaimedBooth.Owner == tostring(Player.UserId) then
                     return true
                 end
@@ -187,75 +196,74 @@ return function ()
     local function GetAPIData()
         local Attempts = 0
         repeat
-            print("Starting API Request")
             local Success, Result = pcall(function()
                 return game:HttpGet(Const.DATA.API)
             end)
             if Success and Result ~= nil then
-                print("Success == true, Result ~= nil")
                 Data = HttpService:JSONDecode(Result)
                 Data.LAST_API_REQUEST = os.time()
-                local _, _ = pcall(function()
-                    writefile(Const.DATA.PATH.PETS_DATA, HttpService:JSONEncode(Data))
-                end)
-                print("Successfully Received Data")
                 return
             else
-                print("Success == false, Result == nil")
-                task.wait(Const.WAIT.NORMAL)
+                task.wait(Const.WAIT.SHORT)
             end
             Attempts += 1
         until Attempts >= Const.DATA.MAX_ATTEMPTS
         if Data == nil then
-            print("Failed to Received Data")
             Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
         end
     end
 
 
-    local function GetPlayerInventory()
+    local function GetPlayerData()
         if game.PlaceId == Const.GAME.TRADING_PLAZA_PLACE_ID then
-            print("Teleporting to other place because Player is in Trading Plaza")
-            task.wait(15)
             Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
-            return
         end
-        print("Checking if Inv is enabled")
         while not Const.INSTANCE.PLAYER_INVENTORY.Enabled do
-            task.wait(Const.WAIT.SHORT)
+            task.wait()
         end
-        print("Getting all Huges")
-        local HugeAmount = 0
         for _, Pet in ipairs(Const.INSTANCE.EQUIPPED_PETS:GetChildren()) do
             if Pet.ClassName == "TextButton" and Pet.Strength.ContentText == "???" then
                 if Data[Pet.Icon.Image] ~= nil then
-                    print(Data)
-                    PlayerInv.Pets.[Pet:GetAttribute("PetUID")] = Data[Pet.Icon.Image]
-                    HugeAmount += 1
+                    PlayerData.Pets[tostring(Pet:GetAttribute("PetUID"))] = Data[Pet.Icon.Image]
+                    PlayerData.HugeAmount += 1
                 end
             end
         end
-        PlayerInv.HugeAmount = HugeAmount
-        PlayerInv.PlayerState = Const.STATE.IDLE
-        print("Saving PlayerInv Data")
-        local Success, _ = pcall(function()
-            writefile(Const.DATA.PATH.PLAYER_INV, HttpService:JSONEncode(PlayerInv))
-        end)
-        if Success then PlayerInventoryDataSaved = true end
-        print("Teleporting to other place because finished Getting Player Inv")
-        task.wait(15)
+        PlayerData.PlayerState = Const.STATE.IDLE
         Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
     end
 
 
+    local function CreateListing()
+        local ListedItems
+        for _, ClaimedBooth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
+            if ClaimedBooth.Owner == tostring(Player.UserId) then
+                ListedItems = ClaimedBooth:WaitForChild("Pets"):WaitForChild("BoothTop"):WaitForChild("PetScroll")
+            end
+        end
+        for Hash, Value in pairs(PlayerData) do
+            local args = {
+                Hash,                                                   -- ItemId
+                Value + Const.GAME.HUGE_SELLING_BASE_ADDED_AMOUNT,	    -- Price
+                1									                    -- Amount	
+            }
+            workspace:WaitForChild("__THINGS"):WaitForChild("Booths"):WaitForChild("Model"):WaitForChild("Pets"):WaitForChild("Booths_CreateListing"):InvokeServer(unpack(args))
+            task.wait(Const.WAIT.SHORT)
+        end
+        if not (PlayerData.HugeAmount == #ListedItems:GetChildren()) then
+            GetPlayerData()
+        end
+    end
 
-    --// Events
-    print("EVENTS")
+
+    --// Initialize Events
     Players.PlayerRemoving:Connect(function(LeavingPlayer)
-        print("PlayerLeaving")
-        if LeavingPlayer.UserId == UserId and not PlayerInventoryDataSaved then
+        if LeavingPlayer.UserId == UserId then
             local _, _ = pcall(function()
-                writefile(Const.DATA.PATH.PLAYER_INV, HttpService:JSONEncode(PlayerInv))
+                writefile(Const.DATA.PATH.PLAYER_INV, HttpService:JSONEncode(PlayerData))
+            end)
+            local _, _ = pcall(function()
+                writefile(Const.DATA.PATH.PETS_DATA, HttpService:JSONEncode(Data))
             end)
         end
     end)
@@ -267,7 +275,6 @@ return function ()
 
 
     --// Initialize Tasks
-    print("Task")
     local Tasks = {
         API = {
             Counter = 0,
@@ -283,7 +290,6 @@ return function ()
 
 
     --// Process
-    print("Process")
     local function Process()
         local LoopTime = Const.WAIT.SHORT
         while task.wait(LoopTime) do
@@ -301,102 +307,61 @@ return function ()
     --// Starting Code
     local function OnCreate()
         --// Get Data
-        print("------------")
-        print("Get Data")
         local Success, Result = pcall(function()
             return readfile(Const.DATA.PATH.PETS_DATA)
         end)
         if Success and Result ~= nil then
-            print("Get Data, Success == true")
             Data = HttpService:JSONDecode(Result)
             if os.time() - (Data.LAST_API_REQUEST or os.time()) >= Tasks.API.Interval then
-                print("Have to get Data")
                 GetAPIData()
             end
         else
-            print("Get Data, Success == false")
-            print("------------")
             GetAPIData()
-            print("------------")
         end
-        print("------------")
-        print("------------")
-        print("Get Player Inv")
-        --// Get PlayerInventory
+        --// Get Player Data
         local Success, Result = pcall(function()
             return readfile(Const.DATA.PATH.PLAYER_INV)
         end)
         if Success and Result ~= nil then
-            print("Get Playeyer Inv, Success == true, Result ~= nil")
-            PlayerInv = HttpService:JSONDecode(Result) 
-            PlayerState = (PlayerInv.PlayerState or Const.STATE.IDLE)
+            PlayerData = HttpService:JSONDecode(Result)
+            if PlayerData.PlayerState == nil or PlayerData.HugeAmount == nil or PlayerData.Pets == nil or PlayerData.PlayerState == Const.STATE.GETTING_PLAYER_DATA then
+                PlayerData = {
+                    HugeAmount = 0,
+                    Pets = {},
+                    PlayerState = Const.STATE.GETTING_PLAYER_DATA
+                }
+                GetPlayerData()
+            end
         else
-            print("Get Playeyer Inv, Success == false, Result == nil")
-            PlayerInv.PlayerState = Const.STATE.GETTING_PLAYER_INVENTORY
-            print("------------")
-            GetPlayerInventory()
-            print("------------")
-            return
+            PlayerData = {
+                HugeAmount = 0,
+                Pets = {},
+                PlayerState = Const.STATE.GETTING_PLAYER_DATA
+            }
+            GetPlayerData()
         end
-        print("------------")
-
-        print("------------")
-        print("Decide over PlayerState")
         --// Decide PlayerState
-        task.wait(15)
-        if PlayerState ~= Const.STATE.GETTING_PLAYER_INVENTORY then
-            if PlayerInv.HugeAmount >= Const.GAME.MINIMUM_HUGE then
-                local Result = IsServerViable()
-                if Result then
-                    PlayerInv.PlayerState = Const.STATE.SELLING
-                else
-                    PlayerInv.PlayerState = Const.STATE.SEARCHING_IDEAL_SERVER_TO_SELL
-                end
-            else
-                PlayerInv.PlayerState = Const.STATE.BUYING
-            end
+        if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
+            Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
         end
-        print("------------")
-
-        --// Handle PlayerState and Assign Tasks
-        if PlayerState == Const.STATE.BUYING then
-            if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
-                Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
-                return
-            end
+        if PlayerData.HugeAmount >= Const.GAME.MINIMUM_HUGE then
+            PlayerData.PlayerState = Const.STATE.SELLING
+        else
+            PlayerData.PlayerState = Const.STATE.BUYING
+        end
+        --// Perform Actions based on PlayerState
+        if PlayerData.PlayerState == Const.STATE.BUYING then
             ScanMarketplace()
-        elseif PlayerState == Const.STATE.SELLING then
-            if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
-                Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
-                return
-            end
-            ClaimBooth()
-            CreateListing()
-        elseif PlayerState == Const.STATE.GETTING_PLAYER_INVENTORY then
-            if game.PlaceId == Const.GAME.TRADING_PLAZA_PLACE_ID then
-                Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
-                return
+        elseif PlayerData.PlayerState == Const.STATE.SELLING then
+            if IsServerViable() then
+                ClaimBooth()
+                CreateListing()
+                Process()
             else
-                GetPlayerInventory()
-                return
+                Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
             end
-        elseif PlayerState == Const.STATE.SEARCHING_IDEAL_SERVER_TO_SELL then
-            if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
-                Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
-                return
-            end
-            Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
             return
         end
-        if PlayerState == Const.STATE.SELLING then
-            print("Activating Process")
-            Process()
-        end
-        print("Finished Create")
     end
-    print("Create")
     OnCreate()
-
-    task.wait(Const.WAIT.SHORT)
-    print("PlayerState" .. PlayerState)
 end
