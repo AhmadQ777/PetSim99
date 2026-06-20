@@ -36,7 +36,7 @@ return function ()
                 PLAYER_INV = "C:\\Users\\Amira\\AppData\\Local\\Xeno\\workspace\\PLAYER_INV.json";
                 PETS_DATA = "C:\\Users\\Amira\\AppData\\Local\\Xeno\\workspace\\PETS_DATA.json"
             },
-            MAX_ATTEMPTS = 3
+            MAX_ATTEMPTS = 20
         },
         GAME = {
             HUGE_SELLING_BASE_ADDED_AMOUNT = 1190000,
@@ -86,9 +86,7 @@ return function ()
     print("Variables")
     local Data
     local PlayerInv = {}
-    local HasToUpdate = false
     local PlayerInventoryDataSaved = false
-
     local PlayerState = Const.STATE.IDLE
 
 
@@ -187,69 +185,65 @@ return function ()
 
 
     local function GetAPIData()
-        print("API data 1")
         local Attempts = 0
         repeat
-            print("API data 2")
+            print("Starting API Request")
             local Success, Result = pcall(function()
                 return game:HttpGet(Const.DATA.API)
             end)
-            print("API data 3")
             if Success and Result ~= nil then
-                print("API data 4")
+                print("Success == true, Result ~= nil")
                 Data = HttpService:JSONDecode(Result)
                 Data.LAST_API_REQUEST = os.time()
-                local Success, Result = pcall(function()
+                local _, _ = pcall(function()
                     writefile(Const.DATA.PATH.PETS_DATA, HttpService:JSONEncode(Data))
                 end)
-                HasToUpdate = false
-                print("API data 5")
-                break
+                print("Successfully Received Data")
+                return
             else
-                print("API data 3.5")
+                print("Success == false, Result == nil")
                 task.wait(Const.WAIT.NORMAL)
             end
             Attempts += 1
         until Attempts >= Const.DATA.MAX_ATTEMPTS
-        print("API data 6")
+        if Data == nil then
+            print("Failed to Received Data")
+            Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
+        end
     end
+
 
     local function GetPlayerInventory()
         if game.PlaceId == Const.GAME.TRADING_PLAZA_PLACE_ID then
-            print("Trying to tp")
+            print("Teleporting to other place because Player is in Trading Plaza")
             task.wait(15)
             Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
             return
         end
-        print("1")
-        while HasToUpdate and Data ~= nil do
-            GetAPIData()
-            print("Waited")
-        end
-        print("2")
+        print("Checking if Inv is enabled")
         while not Const.INSTANCE.PLAYER_INVENTORY.Enabled do
             task.wait(Const.WAIT.SHORT)
         end
-        print("4")
-        task.wait(15)
+        print("Getting all Huges")
+        local HugeAmount = 0
         for _, Pet in ipairs(Const.INSTANCE.EQUIPPED_PETS:GetChildren()) do
             if Pet.ClassName == "TextButton" and Pet.Strength.ContentText == "???" then
                 if Data[Pet.Icon.Image] ~= nil then
                     print(Data)
-                    PlayerInv[Pet:GetAttribute("PetUID")] = Data[Pet.Icon.Image]
+                    PlayerInv.Pets.[Pet:GetAttribute("PetUID")] = Data[Pet.Icon.Image]
+                    HugeAmount += 1
                 end
             end
         end
-        for key, value in pairs(PlayerInv) do
-            print(key, value)
-        end
-        print("5")
+        PlayerInv.HugeAmount = HugeAmount
         PlayerInv.PlayerState = Const.STATE.IDLE
-        local Success, Result = pcall(function()
+        print("Saving PlayerInv Data")
+        local Success, _ = pcall(function()
             writefile(Const.DATA.PATH.PLAYER_INV, HttpService:JSONEncode(PlayerInv))
         end)
-        print("6")
         if Success then PlayerInventoryDataSaved = true end
+        print("Teleporting to other place because finished Getting Player Inv")
+        task.wait(15)
         Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
     end
 
@@ -260,11 +254,9 @@ return function ()
     Players.PlayerRemoving:Connect(function(LeavingPlayer)
         print("PlayerLeaving")
         if LeavingPlayer.UserId == UserId and not PlayerInventoryDataSaved then
-            repeat
-                local Success, Result = pcall(function()
-                    writefile(Const.DATA.PATH.PLAYER_INV, HttpService:JSONEncode(PlayerInv))
-                end)
-            until Success
+            local _, _ = pcall(function()
+                writefile(Const.DATA.PATH.PLAYER_INV, HttpService:JSONEncode(PlayerInv))
+            end)
         end
     end)
 
@@ -284,7 +276,7 @@ return function ()
         },
         SeverViable = {
             Counter = 0,
-            Interval = 15,
+            Interval = 30,
             Callback = IsServerViable,
         }
     }
@@ -307,71 +299,64 @@ return function ()
 
 
     --// Starting Code
-    print("OnCreate")
     local function OnCreate()
-        local PlayerInvSuccess = false
-
         --// Get Data
+        print("------------")
+        print("Get Data")
         local Success, Result = pcall(function()
-            print("1")
             return readfile(Const.DATA.PATH.PETS_DATA)
         end)
-        print("2")
         if Success and Result ~= nil then
-            print("3")
+            print("Get Data, Success == true")
             Data = HttpService:JSONDecode(Result)
-            print("4")
             if os.time() - (Data.LAST_API_REQUEST or os.time()) >= Tasks.API.Interval then
-                HasToUpdate = true
+                print("Have to get Data")
+                GetAPIData()
             end
-            print("5")
         else
-            print("6")
+            print("Get Data, Success == false")
+            print("------------")
             GetAPIData()
-            print(Data)
+            print("------------")
         end
-        
-        print("Create")
+        print("------------")
+        print("------------")
+        print("Get Player Inv")
         --// Get PlayerInventory
         local Success, Result = pcall(function()
-            print("Player 1")
             return readfile(Const.DATA.PATH.PLAYER_INV)
         end)
         if Success and Result ~= nil then
-            print("Player 2")
+            print("Get Playeyer Inv, Success == true, Result ~= nil")
             PlayerInv = HttpService:JSONDecode(Result) 
             PlayerState = (PlayerInv.PlayerState or Const.STATE.IDLE)
-            PlayerInvSuccess = true
         else
-            print("Player 3")
+            print("Get Playeyer Inv, Success == false, Result == nil")
             PlayerInv.PlayerState = Const.STATE.GETTING_PLAYER_INVENTORY
-            print("Player 1")
+            print("------------")
             GetPlayerInventory()
+            print("------------")
             return
         end
-        print("Create")
+        print("------------")
+
+        print("------------")
+        print("Decide over PlayerState")
         --// Decide PlayerState
         task.wait(15)
         if PlayerState ~= Const.STATE.GETTING_PLAYER_INVENTORY then
-            local HugeAmount = 0
-            if PlayerInvSuccess then
-                for _, _ in pairs(PlayerInv) do
-                    HugeAmount += 1
-                end
-                if HugeAmount >= Const.GAME.MINIMUM_HUGE then
-                    local Result = IsServerViable()
-                    if Result then
-                        PlayerInv.PlayerState = Const.STATE.SELLING
-                    else
-                        PlayerInv.PlayerState = Const.STATE.SEARCHING_IDEAL_SERVER_TO_SELL
-                    end
+            if PlayerInv.HugeAmount >= Const.GAME.MINIMUM_HUGE then
+                local Result = IsServerViable()
+                if Result then
+                    PlayerInv.PlayerState = Const.STATE.SELLING
                 else
-                    PlayerInv.PlayerState = Const.STATE.BUYING
+                    PlayerInv.PlayerState = Const.STATE.SEARCHING_IDEAL_SERVER_TO_SELL
                 end
             else
-                PlayerInv.PlayerState = Const.STATE.GETTING_PLAYER_INVENTORY
+                PlayerInv.PlayerState = Const.STATE.BUYING
             end
         end
+        print("------------")
 
         --// Handle PlayerState and Assign Tasks
         if PlayerState == Const.STATE.BUYING then
