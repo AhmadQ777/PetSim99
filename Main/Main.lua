@@ -25,7 +25,7 @@ return function ()
             CHECK_UNCLAIMED_BOOTHS = TradingPlaza and TradingPlaza:FindFirstChild("BoothSpawns"),
         },
         DATA = {
-            API = "https://raw.githubusercontent.com/AhmadQ777/PetSim99_API/refs/heads/main/ITEMS_DATA.json",
+            API = "https://raw.githubusercontent.com/AhmadQ777/PetSim99/refs/heads/main/ITEMS_DATA.json",
             API_REQUEST_TIME = 180,
             PATH = {
                 PLAYER_INV = "/storage/emulated/0/Delta/Workspace/PLAYER_INV.json",
