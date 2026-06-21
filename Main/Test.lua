@@ -1,22 +1,21 @@
-local args = {
-	8678791334,	
-	{
-		["7d6b8b5dc2a144a6962a255d25b7abc1"] = 1 
-	},
-	{
-		Caller = {
-			LineNumber = 527,
-			ScriptClass = "ModuleScript",
-			Variadic = false,
-			Traceback = "ReplicatedStorage.Library.Client.BoothCmds:527 function PromptPurchase2\nReplicatedStorage.Library.Client.BoothCmds:654 function promptOtherPlayerBooth2\nReplicatedStorage.Library.Client.BoothCmds:157",
-			ScriptPath = "ReplicatedStorage.Library.Client.BoothCmds",
-			FunctionName = "PromptPurchase2",
-			Handle = "function: 0xf91ad081f307b7ed",
-			ScriptType = "Instance",
-			ParameterCount = 2,
-			SourceIdentifier = "ReplicatedStorage.Library.Client.BoothCmds"
-		}
-	}
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Booths_RequestPurchase"):InvokeServer(unpack(args))
-
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local OwnedBooth
+for _, ClaimedBooth in ipairs(game.Workspace.__THINGS.Booths:GetChildren()) do
+	if ClaimedBooth:GetAttribute("Owner") == Player.UserId then
+		OwnedBooth = ClaimedBooth
+	end
+end
+while task.wait() do
+	local WaitedTime = 0
+	for _, Child in ipairs(OwnedBooth:GetChildren()) do
+		while Child:FindFirstChild("CircularBar") do
+			WaitedTime += 0.1
+			task.wait(0.1)
+		end
+		if WaitedTime ~= 0 then
+			print(WaitedTime)			
+		end
+		WaitedTime = 0
+	end
+end
