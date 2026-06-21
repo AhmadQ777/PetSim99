@@ -17,14 +17,10 @@ OUTPUT_FILE = "/storage/emulated/0/Delta/Workspace/PETS_DATA.json"
 HUGE_MIN_VALUE = 0
 HUGE_MAX_VALUE = 35_000_000
 
-MAX_AGE_SECONDS = 14 * 24 * 60 * 60
+MAX_AGE_SECONDS = 30 * 24 * 60 * 60
 
 REQUEST_TIMEOUT = 10
 MAX_RETRIES = 2
-
-HEADERS = {
-    "User-Agent": "PS99-Local-Updater/1.0"
-}
 
 SESSION = requests.Session()
 
@@ -36,18 +32,17 @@ SESSION = requests.Session()
 def fetch(url):
     for attempt in range(MAX_RETRIES):
         try:
-            r = SESSION.get(url, headers=HEADERS, timeout=REQUEST_TIMEOUT)
+            r = SESSION.get(url, timeout=REQUEST_TIMEOUT)
             r.raise_for_status()
-
             data = r.json().get("data")
+
             if isinstance(data, list):
                 return data
 
         except:
             pass
 
-        if attempt + 1 < MAX_RETRIES:
-            time.sleep(1)
+        time.sleep(1)
 
     return None
 
@@ -57,28 +52,26 @@ def fetch(url):
 # =====================
 
 def build():
-    # 🔥 2x faster API load (parallel requests)
     with ThreadPoolExecutor() as ex:
         pets, rap = list(ex.map(fetch, [PETS_URL, RAP_URL]))
 
-    if pets is None or rap is None:
+    if not pets or not rap:
         return None
 
-    now = time.time()
+    now = int(time.time())
 
     lookup = {}
-    seen = set()  # 🔥 anti duplicate
+    seen = set()
 
     # =====================
     # PETS
     # =====================
-
     for pet in pets:
         if pet.get("category") != "Huge":
             continue
 
-        # 🔥 tradable filter (safe fallback)
         config = pet.get("configData") or {}
+
         if config.get("tradable") is False or config.get("tradeable") is False:
             continue
 
@@ -95,20 +88,15 @@ def build():
             continue
 
         name = pet.get("configName")
-        thumbnail = config.get("thumbnail")
+        thumb = config.get("thumbnail")
 
-        if not isinstance(name, str) or not isinstance(thumbnail, str):
-            continue
-
-        if not thumbnail.startswith("rbxassetid://"):
-            continue
-
-        lookup[name.strip().lower()] = thumbnail
+        if isinstance(name, str) and isinstance(thumb, str):
+            if thumb.startswith("rbxassetid://"):
+                lookup[name.strip().lower()] = thumb
 
     # =====================
     # RAP
     # =====================
-
     output = {}
 
     for entry in rap:
@@ -130,17 +118,19 @@ def build():
         if not thumb:
             continue
 
-        # 🔥 anti duplicate system
         if thumb in seen:
             continue
 
         seen.add(thumb)
         output[thumb] = int(value)
 
-    return {
-        "LastSuccessfulAPIRequest": int(now),
-        "data": output
-    } if output else None
+    if not output:
+        return None
+
+    # ROOT FIELD
+    output["LastSuccessfulAPIRequest"] = now
+
+    return output
 
 
 # =====================
