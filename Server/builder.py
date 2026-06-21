@@ -9,7 +9,7 @@ import os
 PETS_URL = "https://ps99.biggamesapi.io/api/collection/Pets"
 RAP_URL  = "https://ps99.biggamesapi.io/api/rap"
 
-OUTPUT_FILE = "Server/ITEMS_DATA.json"
+OUTPUT_FILE = "/storage/emulated/0/Delta/Workspace/ITEMS_DATA.json"
 
 HUGE_MIN_VALUE = 0
 HUGE_MAX_VALUE = 30_000_000
