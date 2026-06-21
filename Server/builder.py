@@ -34,8 +34,8 @@ def fetch(url, name):
 
 
 def build():
-    pets = fetch(PETS_URL)
-    rap  = fetch(RAP_URL)
+    pets = fetch(PETS_URL, "PETS")
+    rap  = fetch(RAP_URL, "RAP")
 
     if pets is None or rap is None:
         send_discord("FEHLER: API nicht erreichbar")
