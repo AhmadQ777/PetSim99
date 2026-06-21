@@ -13,7 +13,7 @@ RAP_URL = "https://ps99.biggamesapi.io/api/rap"
 OUTPUT_FILE = "/storage/emulated/0/Delta/Workspace/PETS_DATA.json"
 
 HUGE_MIN_VALUE = 0
-HUGE_MAX_VALUE = 30_000_000
+HUGE_MAX_VALUE = 35_000_000
 
 REQUEST_TIMEOUT = 10
 MAX_RETRIES = 2
@@ -64,7 +64,6 @@ def fetch(url):
 # =====================
 # BUILD
 # =====================
-
 
 def build():
     pets = fetch(PETS_URL)
@@ -125,7 +124,11 @@ def build():
 
         output[thumbnail] = int(value)
 
-    return output if output else None
+    # 🔥 ADD: Roblox-like timestamp
+    return {
+        "LastSuccessfulAPIRequest": int(time.time()),
+        "data": output
+    } if output else None
 
 
 # =====================
