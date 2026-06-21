@@ -12,12 +12,9 @@ termux-wake-lock
 mkdir -p ~/ps99
 cd ~/ps99
 
-# initial download
-curl -s "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Server/builder.py" -o builder.py
-
 # main loop
 while true; do
-    curl -s "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Server/builder.py" -o builder.py
+    curl -s "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/builder.py" -o builder.py
     python builder.py
     sleep 180
 done
