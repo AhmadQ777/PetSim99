@@ -1,6 +1,7 @@
 import json
 import requests
 import os
+import time
 
 # =====================
 # CONFIG
@@ -14,18 +15,38 @@ OUTPUT_FILE = "/storage/emulated/0/Delta/Workspace/PETS_DATA.json"
 HUGE_MIN_VALUE = 0
 HUGE_MAX_VALUE = 30_000_000
 
+REQUEST_TIMEOUT = 10
+MAX_RETRIES = 2
+
 
 # =====================
 # FETCH
 # =====================
 
 def fetch(url):
-    try:
-        r = requests.get(url, timeout=10)
-        r.raise_for_status()
-        return r.json().get("data", [])
-    except:
-        return None
+    for _ in range(MAX_RETRIES):
+        try:
+            response = requests.get(url, timeout=REQUEST_TIMEOUT)
+            response.raise_for_status()
+
+            payload = response.json()
+
+            if not isinstance(payload, dict):
+                continue
+
+            data = payload.get("data")
+
+            if isinstance(data, list):
+                return data
+
+        except requests.RequestException:
+            pass
+        except ValueError:
+            pass
+
+        time.sleep(1)
+
+    return None
 
 
 # =====================
@@ -34,35 +55,59 @@ def fetch(url):
 
 def build():
     pets = fetch(PETS_URL)
-    rap  = fetch(RAP_URL)
+    rap = fetch(RAP_URL)
 
     if pets is None or rap is None:
         return None
 
     lookup = {}
 
-    for p in pets:
-        if str(p.get("category", "")).lower() != "huge":
+    for pet in pets:
+        if pet.get("category") != "Huge":
             continue
 
-        name = (p.get("configName") or "").strip().lower()
-        thumb = (p.get("configData") or {}).get("thumbnail")
+        name = pet.get("configName")
+        config = pet.get("configData")
 
-        if name and thumb:
-            lookup[name] = thumb
+        if not isinstance(config, dict):
+            continue
 
-    out = {}
+        thumbnail = config.get("thumbnail")
 
-    for r in rap:
-        name = ((r.get("configData") or {}).get("id") or "").strip().lower()
-        value = r.get("value", 0)
+        if (
+            isinstance(name, str)
+            and isinstance(thumbnail, str)
+            and thumbnail
+        ):
+            lookup[name.strip().lower()] = thumbnail
 
-        thumb = lookup.get(name)
+    output = {}
 
-        if thumb and HUGE_MIN_VALUE <= value <= HUGE_MAX_VALUE:
-            out[thumb] = value
+    for entry in rap:
+        config = entry.get("configData")
 
-    return out
+        if not isinstance(config, dict):
+            continue
+
+        pet_name = config.get("id")
+
+        if not isinstance(pet_name, str):
+            continue
+
+        value = entry.get("value")
+
+        if not isinstance(value, (int, float)):
+            continue
+
+        if not (HUGE_MIN_VALUE <= value <= HUGE_MAX_VALUE):
+            continue
+
+        thumbnail = lookup.get(pet_name.strip().lower())
+
+        if thumbnail:
+            output[thumbnail] = value
+
+    return output
 
 
 # =====================
@@ -72,8 +117,8 @@ def build():
 def save(data):
     os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
 
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, separators=(",", ":"))
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as file:
+        json.dump(data, file, separators=(",", ":"))
 
 
 # =====================
@@ -83,7 +128,7 @@ def save(data):
 def main():
     data = build()
 
-    if data:
+    if data is not None:
         save(data)
 
 
