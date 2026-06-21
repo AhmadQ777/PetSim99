@@ -306,7 +306,7 @@ return function ()
         local Success, Result = pcall(readfile, Const.DATA.PATH.PETS_DATA)
         if Success and Result ~= nil then
             Data = HttpService:JSONDecode(Result)
-            if os.time() - Data.LastSuccessfullAPIRequest >= Const.DATA.MAX_OLDEST_PETS_DATA then
+            if os.time() - Data.LastSuccessfulAPIRequest >= Const.DATA.MAX_OLDEST_PETS_DATA then
                 Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
                 return
             end
