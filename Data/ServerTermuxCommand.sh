@@ -16,5 +16,5 @@ cd ~/ps99
 while true; do
     curl -s "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/builder.py" -o builder.py
     python builder.py
-    sleep 180
+    sleep 120
 done
