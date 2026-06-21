@@ -15,7 +15,7 @@ return function ()
     --// Initialize Varaibles to check
     local TradingPlaza = game.Workspace:FindFirstChild("TradingPlaza")
 
-    --// Decalaring Const Var
+    --// Decalaring Const Variables
     local Const = {
         INSTANCE = {
             DIAMONDS = Player:WaitForChild("leaderstats"):WaitForChild("💎 Diamonds"),
@@ -180,6 +180,7 @@ return function ()
                 end
                 if ItemToBuy.Item.Parent then
                     BuyItem(ItemToBuy.Owner, ItemToBuy.Item.Name)
+                    PlayerData.Pets[ItemToBuy.Item.Name] = ItemToBuy.Item.Holder.ItemSlot.Icon.Image
                 end
             end
         end
