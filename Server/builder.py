@@ -7,7 +7,7 @@ import traceback
 PETS_URL  = "https://ps99.biggamesapi.io/api/collection/Pets"
 RAP_URL   = "https://ps99.biggamesapi.io/api/rap"
 OUTPUT_FILE = "Server/ITEMS_DATA.json"
-WEBHOOK_URL = "https://discord.com/api/webhooks/XXXXXXXX"
+WEBHOOK_URL = "https://discord.com/api/webhooks/1518233664771588307/pbbS7bP6GRvczqDjs-fzhjRVuTabzOaohnnffrpjWApjuInrqsFCcHgIx72TPvubH36X"
 
 HUGE_MIN_VALUE = 0
 HUGE_MAX_VALUE = 30_000_000
