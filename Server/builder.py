@@ -3,6 +3,7 @@ import requests
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import os
+import time
 import traceback
 
 PETS_URL = "https://ps99.biggamesapi.io/api/collection/Pets"
