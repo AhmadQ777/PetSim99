@@ -1,31 +1,21 @@
 pkg update -y && pkg upgrade -y
 
-pkg install python git tmux -y
+pkg install python git -y
 pip install requests
 
 termux-wake-lock
 
 cd ~
 
-if [ ! -d "PetSim99_API" ]; then
-  git clone https://github.com/AhmadQ777/PetSim99_API.git
+if [ ! -d "PetSim99" ]; then
+  git clone https://github.com/AhmadQ777/PetSim99.git
 fi
 
-cd PetSim99_API
+cd PetSim99
 
 git pull
 
 while true; do
-    echo "[RUN] $(date)" >> log.txt
-
-    python builder.py >> log.txt 2>&1
-
-    git add ITEMS_DATA.json
-
-    if ! git diff --cached --quiet; then
-        git commit -m "auto update"
-        git push
-    fi
-
+    python builder.py
     sleep 180
 done
