@@ -1,14 +1,14 @@
 import json
-import requests
 import os
 import time
+import requests
 
 # =====================
 # CONFIG
 # =====================
 
 PETS_URL = "https://ps99.biggamesapi.io/api/collection/Pets"
-RAP_URL  = "https://ps99.biggamesapi.io/api/rap"
+RAP_URL = "https://ps99.biggamesapi.io/api/rap"
 
 OUTPUT_FILE = "/storage/emulated/0/Delta/Workspace/PETS_DATA.json"
 
@@ -18,15 +18,26 @@ HUGE_MAX_VALUE = 30_000_000
 REQUEST_TIMEOUT = 10
 MAX_RETRIES = 2
 
+HEADERS = {
+    "User-Agent": "PS99-Local-Updater/1.0"
+}
+
+SESSION = requests.Session()
+
 
 # =====================
 # FETCH
 # =====================
 
 def fetch(url):
-    for _ in range(MAX_RETRIES):
+    for attempt in range(MAX_RETRIES):
         try:
-            response = requests.get(url, timeout=REQUEST_TIMEOUT)
+            response = SESSION.get(
+                url,
+                headers=HEADERS,
+                timeout=REQUEST_TIMEOUT
+            )
+
             response.raise_for_status()
 
             payload = response.json()
@@ -44,13 +55,14 @@ def fetch(url):
         except ValueError:
             pass
 
-        time.sleep(1)
+        if attempt + 1 < MAX_RETRIES:
+            time.sleep(1)
 
     return None
 
 
 # =====================
-# BUILD / MERGE
+# BUILD
 # =====================
 
 def build():
@@ -60,7 +72,7 @@ def build():
     if pets is None or rap is None:
         return None
 
-    lookup = {}
+    thumbnail_lookup = {}
 
     for pet in pets:
         if pet.get("category") != "Huge":
@@ -74,12 +86,18 @@ def build():
 
         thumbnail = config.get("thumbnail")
 
-        if (
-            isinstance(name, str)
-            and isinstance(thumbnail, str)
-            and thumbnail
-        ):
-            lookup[name.strip().lower()] = thumbnail
+        if not isinstance(name, str):
+            continue
+
+        if not isinstance(thumbnail, str):
+            continue
+
+        thumbnail = thumbnail.strip()
+
+        if not thumbnail.startswith("rbxassetid://"):
+            continue
+
+        thumbnail_lookup[name.strip().lower()] = thumbnail
 
     output = {}
 
@@ -102,10 +120,12 @@ def build():
         if not (HUGE_MIN_VALUE <= value <= HUGE_MAX_VALUE):
             continue
 
-        thumbnail = lookup.get(pet_name.strip().lower())
+        thumbnail = thumbnail_lookup.get(
+            pet_name.strip().lower()
+        )
 
         if thumbnail:
-            output[thumbnail] = value
+            output[thumbnail] = int(value)
 
     return output
 
@@ -115,20 +135,32 @@ def build():
 # =====================
 
 def save(data):
-    os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
+    directory = os.path.dirname(OUTPUT_FILE)
 
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as file:
-        json.dump(data, file, separators=(",", ":"))
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+
+    temp_file = OUTPUT_FILE + ".tmp"
+
+    with open(temp_file, "w", encoding="utf-8") as file:
+        json.dump(
+            data,
+            file,
+            separators=(",", ":"),
+            ensure_ascii=False
+        )
+
+    os.replace(temp_file, OUTPUT_FILE)
 
 
 # =====================
-# RUN
+# MAIN
 # =====================
 
 def main():
     data = build()
 
-    if data is not None:
+    if data:
         save(data)
 
 
