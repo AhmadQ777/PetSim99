@@ -27,7 +27,7 @@ return function ()
         DATA = {
             PATH = {
                 PLAYER_INV = "/storage/emulated/0/Delta/Workspace/PLAYER_INV.json",
-                PETS_DATA = "/storage/emulated/0/Delta/Workspace/PETS_DATA.json",
+                PETS_DATA = "/storage/emulated/0/Delta/Workspace/PETS_DATA.json"
             },
             MAX_OLDEST_PETS_DATA = 600
         },
@@ -301,7 +301,6 @@ return function ()
 
     --// Starting Code
     local function OnCreate()
-
         --// Get Data
         local Success, Result = pcall(readfile, Const.DATA.PATH.PETS_DATA)
         if Success and Result ~= nil then
