@@ -1,57 +1,48 @@
 import json
 import requests
-from datetime import datetime
-from zoneinfo import ZoneInfo
 import os
-import time
-import traceback
+
+# =====================
+# CONFIG
+# =====================
 
 PETS_URL = "https://ps99.biggamesapi.io/api/collection/Pets"
-RAP_URL = "https://ps99.biggamesapi.io/api/rap"
+RAP_URL  = "https://ps99.biggamesapi.io/api/rap"
 
 OUTPUT_FILE = "Server/ITEMS_DATA.json"
-WEBHOOK_URL = "https://discord.com/api/webhooks/XXXXXXXX"
 
 HUGE_MIN_VALUE = 0
 HUGE_MAX_VALUE = 30_000_000
 
 
-def now_de():
-    return datetime.now(ZoneInfo("Europe/Berlin")).strftime("%Y-%m-%d %H:%M:%S")
+# =====================
+# FETCH
+# =====================
 
-
-def send_discord(msg):
+def fetch(url):
     try:
-        requests.post(WEBHOOK_URL, json={"content": msg}, timeout=10)
-    except Exception:
-        pass
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
+        return r.json().get("data", [])
+    except:
+        return None
 
 
-def fetch(url, name):
-    for attempt in range(5):
-        try:
-            r = requests.get(url, timeout=10)
-            r.raise_for_status()
-            return r.json().get("data", [])
-        except Exception:
-            time.sleep(2 * (attempt + 1))
-
-    send_discord(f"API FAILED AFTER 5 TRIES: {name} | {now_de()}")
-    return None
-
+# =====================
+# BUILD / MERGE
+# =====================
 
 def build():
-    pets = fetch(PETS_URL, "PETS")
-    rap = fetch(RAP_URL, "RAP")
+    pets = fetch(PETS_URL)
+    rap  = fetch(RAP_URL)
 
     if pets is None or rap is None:
-        send_discord(f"FEHLER: API nicht erreichbar | {now_de()}")
         return None
 
     lookup = {}
 
     for p in pets:
-        if "huge" not in str(p.get("category", "")).lower():
+        if str(p.get("category", "")).lower() != "huge":
             continue
 
         name = (p.get("configName") or "").strip().lower()
@@ -62,37 +53,38 @@ def build():
 
     out = {}
 
-    for entry in rap:
-        name = ((entry.get("configData") or {}).get("id") or "").strip().lower()
-        value = entry.get("value", 0)
+    for r in rap:
+        name = ((r.get("configData") or {}).get("id") or "").strip().lower()
+        value = r.get("value", 0)
 
         thumb = lookup.get(name)
 
         if thumb and HUGE_MIN_VALUE <= value <= HUGE_MAX_VALUE:
             out[thumb] = value
 
-    return out if out else None
+    return out
 
+
+# =====================
+# SAVE
+# =====================
 
 def save(data):
-    os.makedirs("Server", exist_ok=True)
+    os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
+
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, separators=(",", ":"))
 
 
+# =====================
+# RUN
+# =====================
+
 def main():
-    try:
-        data = build()
+    data = build()
 
-        if data:
-            save(data)
-            send_discord(f"UPDATE OK | {len(data)} Items | {now_de()}")
-        else:
-            send_discord(f"KEINE DATEN | Huge-Pets nicht gefunden | {now_de()}")
-
-    except Exception:
-        send_discord(f"FATALER FEHLER | {now_de()}")
-        send_discord(traceback.format_exc()[:1500])
+    if data:
+        save(data)
 
 
 if __name__ == "__main__":
