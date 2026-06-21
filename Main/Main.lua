@@ -36,8 +36,7 @@ return function ()
         GAME = {
             HUGE_SELLING_BASE_ADDED_AMOUNT = 1190000,
             MINIMUM_BUYING_HUGE_UNDER_PRICE = 500000,
-            MINIMUM_HUGE = 2,
-            MINIMUM_NEEDED_HUGES_TO_SELL = 1,
+            MINIMUM_HUGES_TO_SELL = 3, 
             MINIMUM_PLAYERS = 11,
             START_LOBBY_PLACE_ID = 8737899170,
             TRADING_PLAZA_PLACE_ID = 15502339080,
@@ -112,104 +111,6 @@ return function ()
     end 
 
 
-    local function ConvertNumber(Text)
-        Text = tostring(Text):upper()
-        local Multipliers = {
-            K = 1e3,
-            M = 1e6,
-            B = 1e9,
-            T = 1e12,
-        }
-        local Number, Suffix = Text:match("([%d%.]+)(%a?)")
-        Number = tonumber(Number)
-        local Multiplier = Multipliers[Suffix] or 1
-        return Number * Multiplier
-    end
-
-
-    local function BuyItem(UserId, ItemId)
-        game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Booths_RequestPurchase"):InvokeServer({
-            UserId,	-- Buying from Player.UserId
-            {
-                [ItemId] = 1 -- ItemId, Amount
-            },
-            {
-                Caller = {
-                    LineNumber = 527,
-                    ScriptClass = "ModuleScript",
-                    Variadic = false,
-                    Traceback = "ReplicatedStorage.Library.Client.BoothCmds:527 function PromptPurchase2\nReplicatedStorage.Library.Client.BoothCmds:654 function promptOtherPlayerBooth2\nReplicatedStorage.Library.Client.BoothCmds:157",
-                    ScriptPath = "ReplicatedStorage.Library.Client.BoothCmds",
-                    FunctionName = "PromptPurchase2",
-                    Handle = "function: 0xf91ad081f307b7ed",
-                    ScriptType = "Instance",
-                    ParameterCount = 2,
-                    SourceIdentifier = "ReplicatedStorage.Library.Client.BoothCmds"
-                }
-            }
-        })
-        task.wait(Const.WAIT.SHORT)
-    end
-
-
-    local function ScanMarketplace()
-        local ToBuy = {}
-        for _, Booth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
-            local Pets = Booth:FindFirstChild("Pets")
-            local BoothTop = Pets and Pets:FindFirstChild("BoothTop")
-            local PetScroll = BoothTop and BoothTop:FindFirstChild("PetScroll")
-            if not PetScroll then
-                continue
-            end
-            for _, Item in ipairs(PetScroll:GetChildren()) do
-                if Item.Parent and Item.ClassName == "Frame" and Data[Item.Holder.ItemSlot.Icon.Image] ~= nil and Data[Item.Holder.ItemSlot.Icon.Image] - Const.GAME.MINIMUM_BUYING_HUGE_UNDER_PRICE >= ConvertNumber(Item.Buy.Cost.ContentText) then
-                    table.insert(ToBuy, {
-                        Owner = Booth:GetAttribute("Owner"),
-                        Item = Item,
-                    })
-                end
-            end
-        end
-        for _, ItemToBuy in ipairs(ToBuy) do
-            if ItemToBuy.Item and ItemToBuy.Item.Parent then
-                if Const.INSTANCE.DIAMONDS.Value < 30000000 then
-                    break
-                end
-                while ItemToBuy.Item.Parent and ItemToBuy.Item:FindFirstChild("CircularBar") do
-                    task.wait(0.1)
-                end
-                if ItemToBuy.Item.Parent then
-                    BuyItem(ItemToBuy.Owner, ItemToBuy.Item.Name)
-                    PlayerData.Pets[ItemToBuy.Item.Name] = ItemToBuy.Item.Holder.ItemSlot.Icon.Image
-                end
-            end
-        end
-        task.wait(Const.WAIT.NORMAL)
-        Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
-    end
-
-
-    local function IsServerViable()
-        return #Players:GetChildren() >= Const.GAME.MINIMUM_PLAYERS
-    end
-
-
-    local function ClaimBooth()
-        repeat
-            local BoothId = Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()[1]:GetAttribute("ID")
-            game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Booths_ClaimBooth"):InvokeServer(tostring(BoothId))
-        until (function()
-            task.wait(Const.WAIT.NORMAL)
-            for _, ClaimedBooth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
-                if ClaimedBooth:GetAttribute("Owner") == UserId then
-                    return true
-                end
-            end
-            return false
-        end)()
-    end
-
-
     local function GetAPIData()
         local Attempts = 0
         repeat
@@ -252,6 +153,67 @@ return function ()
     end
 
 
+    local function ConvertNumber(Text)
+        Text = tostring(Text):upper()
+        local Multipliers = {
+            K = 1e3,
+            M = 1e6,
+            B = 1e9,
+            T = 1e12,
+        }
+        local Number, Suffix = Text:match("([%d%.]+)(%a?)")
+        Number = tonumber(Number)
+        local Multiplier = Multipliers[Suffix] or 1
+        return Number * Multiplier
+    end
+
+
+    local function IsServerViable()
+        return #Players:GetChildren() >= Const.GAME.MINIMUM_PLAYERS
+    end
+
+
+    local function BuyItem(UserId, ItemId)
+        game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Booths_RequestPurchase"):InvokeServer({
+            UserId,	-- Buying from Player.UserId
+            {
+                [ItemId] = 1 -- ItemId, Amount
+            },
+            {
+                Caller = {
+                    LineNumber = 527,
+                    ScriptClass = "ModuleScript",
+                    Variadic = false,
+                    Traceback = "ReplicatedStorage.Library.Client.BoothCmds:527 function PromptPurchase2\nReplicatedStorage.Library.Client.BoothCmds:654 function promptOtherPlayerBooth2\nReplicatedStorage.Library.Client.BoothCmds:157",
+                    ScriptPath = "ReplicatedStorage.Library.Client.BoothCmds",
+                    FunctionName = "PromptPurchase2",
+                    Handle = "function: 0xf91ad081f307b7ed",
+                    ScriptType = "Instance",
+                    ParameterCount = 2,
+                    SourceIdentifier = "ReplicatedStorage.Library.Client.BoothCmds"
+                }
+            }
+        })
+        task.wait(Const.WAIT.SHORT)
+    end
+
+
+    local function ClaimBooth()
+        repeat
+            local BoothId = Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()[1]:GetAttribute("ID")
+            game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Booths_ClaimBooth"):InvokeServer(tostring(BoothId))
+        until (function()
+            task.wait(Const.WAIT.NORMAL)
+            for _, ClaimedBooth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
+                if ClaimedBooth:GetAttribute("Owner") == UserId then
+                    return true
+                end
+            end
+            return false
+        end)()
+    end
+
+
     local function CreateListing()
         local ListedItems
         for _, ClaimedBooth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
@@ -276,10 +238,57 @@ return function ()
             GetPlayerData()
             return
         end
-        ListedItems.ChildRemoved:Connect(function(Obj)
-            PlayerData.Pets[Obj.Name] = nil
-        end)
     end
+
+
+    local function ScanMarketplace()
+        local ToBuy = {}
+        for _, Booth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
+            local Pets = Booth:FindFirstChild("Pets")
+            local BoothTop = Pets and Pets:FindFirstChild("BoothTop")
+            local PetScroll = BoothTop and BoothTop:FindFirstChild("PetScroll")
+            if not PetScroll then
+                continue
+            end
+            for _, Item in ipairs(PetScroll:GetChildren()) do
+                if Item.Parent and Item.ClassName == "Frame" and Data[Item.Holder.ItemSlot.Icon.Image] ~= nil and Data[Item.Holder.ItemSlot.Icon.Image] - Const.GAME.MINIMUM_BUYING_HUGE_UNDER_PRICE >= ConvertNumber(Item.Buy.Cost.ContentText) then
+                    table.insert(ToBuy, {
+                        Owner = Booth:GetAttribute("Owner"),
+                        Item = Item,
+                    })
+                end
+            end
+        end
+        for _, ItemToBuy in ipairs(ToBuy) do
+            if ItemToBuy.Item and ItemToBuy.Item.Parent then
+                if Const.INSTANCE.DIAMONDS.Value < ConvertNumber(ItemToBuy.Item.Buy.Cost.ContentText) then
+                    break
+                end
+                while ItemToBuy.Item.Parent and ItemToBuy.Item:FindFirstChild("CircularBar") do
+                    task.wait(0.1)
+                end
+                if ItemToBuy.Item.Parent then
+                    BuyItem(ItemToBuy.Owner, ItemToBuy.Item.Name)
+                    PlayerData.Pets[ItemToBuy.Item.Name] = ItemToBuy.Item.Holder.ItemSlot.Icon.Image
+                    PlayerData.HugeAmount += 1
+                end
+                if PlayerData.HugeAmount >= Const.GAME.MINIMUM_HUGES_TO_SELL then
+                    if IsServerViable() then
+                        ClaimBooth()
+                        CreateListing()
+                        Process()
+                        break
+                    end
+                    break
+                end
+            end
+        end
+        task.wait(Const.WAIT.NORMAL)
+        Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
+    end
+
+   
+
 
 
     --// Initialize Events
@@ -301,18 +310,22 @@ return function ()
 
 
     --// Process
-    local function Process()
-        while task.wait(30) do
-            local OwnedBooth 
-            for _, ClaimedBooth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
-                if ClaimedBooth:GetAttribute("Owner") == UserId then
-                    OwnedBooth = ClaimedBooth:FindFirstChild("Pets")
-                end
+    function Process()
+        local ListedItems
+        for _, ClaimedBooth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
+            if ClaimedBooth:GetAttribute("Owner") == UserId then
+                ListedItems = ClaimedBooth:WaitForChild("Pets"):WaitForChild("BoothTop"):WaitForChild("PetScroll")
+                break
             end
-            if OwnedBooth and #OwnedBooth:GetChildren() < Const.GAME.MINIMUM_NEEDED_HUGES_TO_SELL then
+        end
+        ListedItems.ChildRemoved:Connect(function(Obj)
+            PlayerData.Pets[Obj.Name] = nil
+            PlayerData.HugeAmount -= 1
+            if PlayerData.HugeAmount <= 1 then
                 ScanMarketplace()
-                return
             end
+        end)
+        while task.wait(30) do
             if not IsServerViable() then
                 Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
             end
@@ -363,7 +376,7 @@ return function ()
         if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
             Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
         end
-        if PlayerData.HugeAmount > Const.GAME.MINIMUM_HUGE then
+        if PlayerData.HugeAmount > Const.GAME.MINIMUM_HUGES_TO_SELL then
             PlayerData.PlayerState = Const.STATE.SELLING
         else
             PlayerData.PlayerState = Const.STATE.BUYING
