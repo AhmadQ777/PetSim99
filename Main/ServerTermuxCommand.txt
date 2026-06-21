@@ -1,0 +1,31 @@
+pkg update -y && pkg upgrade -y
+
+pkg install python git tmux -y
+pip install requests
+
+termux-wake-lock
+
+cd ~
+
+if [ ! -d "PetSim99_API" ]; then
+  git clone https://github.com/AhmadQ777/PetSim99_API.git
+fi
+
+cd PetSim99_API
+
+git pull
+
+while true; do
+    echo "[RUN] $(date)" >> log.txt
+
+    python builder.py >> log.txt 2>&1
+
+    git add ITEMS_DATA.json
+
+    if ! git diff --cached --quiet; then
+        git commit -m "auto update"
+        git push
+    fi
+
+    sleep 180
+done
