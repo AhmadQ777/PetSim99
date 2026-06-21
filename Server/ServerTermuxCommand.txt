@@ -1,20 +1,22 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
 pkg update -y && pkg upgrade -y
 pkg install python git -y
-pip install requests
+
+# pip nur installieren falls noch nicht vorhanden
+python -c "import requests" 2>/dev/null || pip install requests -q
 
 termux-wake-lock
 
 cd ~
-
 if [ ! -d "PetSim99" ]; then
-  git clone https://github.com/AhmadQ777/PetSim99.git
+    git clone https://github.com/AhmadQ777/PetSim99.git
 fi
 
 cd PetSim99
 
-git pull
-
 while true; do
+    git pull --quiet || echo "[WARN] git pull fehlgeschlagen"
     python Server/builder.py
     sleep 180
 done

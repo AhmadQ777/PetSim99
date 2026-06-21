@@ -4,20 +4,19 @@ from datetime import datetime
 import os
 import traceback
 
-PETS_URL = "https://ps99.biggamesapi.io/api/collection/Pets"
-RAP_URL = "https://ps99.biggamesapi.io/api/rap"
-
+PETS_URL  = "https://ps99.biggamesapi.io/api/collection/Pets"
+RAP_URL   = "https://ps99.biggamesapi.io/api/rap"
 OUTPUT_FILE = "Server/ITEMS_DATA.json"
 WEBHOOK_URL = "https://discord.com/api/webhooks/XXXXXXXX"
 
 HUGE_MIN_VALUE = 0
-HUGE_MAX_VALUE = 30000000
+HUGE_MAX_VALUE = 30_000_000
 
 
 def send_discord(msg):
     try:
         requests.post(WEBHOOK_URL, json={"content": msg}, timeout=10)
-    except:
+    except Exception:
         pass
 
 
@@ -26,34 +25,35 @@ def fetch(url):
         r = requests.get(url, timeout=10)
         r.raise_for_status()
         return r.json().get("data", [])
-    except:
-        send_discord("FAILED TO RECEIVE API DATA")
-        return None
+    except Exception:
+        return None  # None = Fehler, [] = leere aber gültige Antwort
 
 
 def build():
     pets = fetch(PETS_URL)
-    rap = fetch(RAP_URL)
+    rap  = fetch(RAP_URL)
 
-    if not pets or not rap:
+    if pets is None or rap is None:
+        send_discord("FEHLER: API nicht erreichbar")
         return None
 
+    # Thumbnail-Lookup aus Pets-API aufbauen
     lookup = {}
-
     for p in pets:
         if p.get("category") == "Huge":
-            name = p.get("configName")
+            name  = p.get("configName")
             thumb = p.get("configData", {}).get("thumbnail")
             if name and thumb:
                 lookup[name] = thumb
 
     out = {}
+    for entry in rap:
+        # configName liegt im root-Objekt, NICHT in configData
+        name = entry.get("configName")
+        val  = entry.get("value", 0)
+        pt   = (entry.get("configData") or {}).get("pt", 1)
 
-    for r in rap:
-        cfg = r.get("configData") or {}
-        name = cfg.get("id")
-        val = r.get("value", 0)
-
+        # Nur Huge-Pets mit Thumbnail und im Werte-Bereich
         thumb = lookup.get(name)
         if thumb and HUGE_MIN_VALUE <= val <= HUGE_MAX_VALUE:
             out[thumb] = val
@@ -63,7 +63,6 @@ def build():
 
 def save(data):
     os.makedirs("Server", exist_ok=True)
-
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, separators=(",", ":"))
 
@@ -71,15 +70,13 @@ def save(data):
 def main():
     try:
         data = build()
-
         if data:
             save(data)
-            send_discord(f"UPDATE OK | {len(data)} items")
+            send_discord(f"UPDATE OK | {len(data)} Items | {datetime.utcnow().strftime('%H:%M UTC')}")
         else:
-            send_discord("NO DATA")
-
+            send_discord("KEINE DATEN | Huge-Pets nicht gefunden")
     except Exception:
-        send_discord("FATAL ERROR")
+        send_discord("FATALER FEHLER")
         send_discord(traceback.format_exc()[:1500])
 
 
