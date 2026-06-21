@@ -10,7 +10,7 @@ PETS_URL = "https://ps99.biggamesapi.io/api/collection/Pets"
 RAP_URL = "https://ps99.biggamesapi.io/api/rap"
 
 OUTPUT_FILE = "Server/ITEMS_DATA.json"
-WEBHOOK_URL = "https://discord.com/api/webhooks/1518233664771588307/pbbS7bP6GRvczqDjs-fzhjRVuTabzOaohnnffrpjWApjuInrqsFCcHgIx72TPvubH36X"
+WEBHOOK_URL = "https://discord.com/api/webhooks/XXXXXXXX"
 
 HUGE_MIN_VALUE = 0
 HUGE_MAX_VALUE = 30_000_000
@@ -48,28 +48,23 @@ def build():
         send_discord(f"FEHLER: API nicht erreichbar | {now_de()}")
         return None
 
-    # 1. Huge Name -> Thumbnail
     lookup = {}
 
     for p in pets:
         if "huge" not in str(p.get("category", "")).lower():
             continue
 
-        name = p.get("configName")
+        name = (p.get("configName") or "").strip().lower()
         thumb = (p.get("configData") or {}).get("thumbnail")
 
         if name and thumb:
             lookup[name] = thumb
 
-    # 2. RAP mapping
     out = {}
 
     for entry in rap:
-        name = (entry.get("configData") or {}).get("id")  # WICHTIG FIX
+        name = ((entry.get("configData") or {}).get("id") or "").strip().lower()
         value = entry.get("value", 0)
-
-        if not name:
-            continue
 
         thumb = lookup.get(name)
 
