@@ -30,7 +30,7 @@ SESSION = requests.Session()
 # =====================
 
 def fetch(url):
-    for attempt in range(MAX_RETRIES):
+    for _ in range(MAX_RETRIES):
         try:
             r = SESSION.get(url, timeout=REQUEST_TIMEOUT)
             r.raise_for_status()
@@ -60,6 +60,7 @@ def build():
 
     now = int(time.time())
 
+    # name -> thumbnail lookup
     lookup = {}
     seen = set()
 
@@ -84,6 +85,7 @@ def build():
         except:
             continue
 
+        # skip new pets (older than 30 days only)
         if now - pet_time <= MAX_AGE_SECONDS:
             continue
 
@@ -127,10 +129,10 @@ def build():
     if not output:
         return None
 
-    # ROOT FIELD
-    output["LastSuccessfulAPIRequest"] = now
-
-    return output
+    return {
+        "data": output,
+        "LastSuccessfulAPIRequest": now
+    }
 
 
 # =====================
