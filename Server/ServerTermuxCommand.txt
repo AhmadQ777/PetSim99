@@ -15,6 +15,6 @@ cd PetSim99
 git pull
 
 while true; do
-    python builder.py
+    python Server/builder.py
     sleep 180
 done

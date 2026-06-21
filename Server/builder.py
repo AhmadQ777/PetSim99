@@ -8,7 +8,7 @@ PETS_URL = "https://ps99.biggamesapi.io/api/collection/Pets"
 RAP_URL = "https://ps99.biggamesapi.io/api/rap"
 
 OUTPUT_FILE = "Server/ITEMS_DATA.json"
-WEBHOOK_URL = "https://discord.com/api/webhooks/1518233664771588307/pbbS7bP6GRvczqDjs-fzhjRVuTabzOaohnnffrpjWApjuInrqsFCcHgIx72TPvubH36X"
+WEBHOOK_URL = "https://discord.com/api/webhooks/XXXXXXXX"
 
 HUGE_MIN_VALUE = 0
 HUGE_MAX_VALUE = 30000000
@@ -26,7 +26,7 @@ def fetch(url):
         r = requests.get(url, timeout=10)
         r.raise_for_status()
         return r.json().get("data", [])
-    except Exception:
+    except:
         send_discord("FAILED TO RECEIVE API DATA")
         return None
 
@@ -50,22 +50,20 @@ def build():
     out = {}
 
     for r in rap:
-        try:
-            cfg = r.get("configData") or {}
-            name = cfg.get("id")
-            val = r.get("value", 0)
+        cfg = r.get("configData") or {}
+        name = cfg.get("id")
+        val = r.get("value", 0)
 
-            thumb = lookup.get(name)
-            if thumb and HUGE_MIN_VALUE <= val <= HUGE_MAX_VALUE:
-                out[thumb] = val
-        except Exception:
-            send_discord("ERROR WHILE PROCESSING DATA")
+        thumb = lookup.get(name)
+        if thumb and HUGE_MIN_VALUE <= val <= HUGE_MAX_VALUE:
+            out[thumb] = val
 
     return out if out else None
 
 
 def save(data):
     os.makedirs("Server", exist_ok=True)
+
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, separators=(",", ":"))
 
@@ -78,10 +76,10 @@ def main():
             save(data)
             send_discord(f"UPDATE OK | {len(data)} items")
         else:
-            send_discord("NO DATA RECEIVED")
+            send_discord("NO DATA")
 
     except Exception:
-        send_discord("FATAL ERROR IN SCRIPT")
+        send_discord("FATAL ERROR")
         send_discord(traceback.format_exc()[:1500])
 
 
