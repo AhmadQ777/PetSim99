@@ -2,6 +2,7 @@ import json
 import os
 import time
 import requests
+from datetime import datetime
 
 # =====================
 # CONFIG
@@ -14,6 +15,8 @@ OUTPUT_FILE = "/storage/emulated/0/Delta/Workspace/PETS_DATA.json"
 
 HUGE_MIN_VALUE = 0
 HUGE_MAX_VALUE = 35_000_000
+
+MAX_AGE_SECONDS = 14 * 24 * 60 * 60  # 14 Tage
 
 REQUEST_TIMEOUT = 10
 MAX_RETRIES = 2
@@ -32,12 +35,7 @@ SESSION = requests.Session()
 def fetch(url):
     for attempt in range(MAX_RETRIES):
         try:
-            response = SESSION.get(
-                url,
-                headers=HEADERS,
-                timeout=REQUEST_TIMEOUT
-            )
-
+            response = SESSION.get(url, headers=HEADERS, timeout=REQUEST_TIMEOUT)
             response.raise_for_status()
 
             payload = response.json()
@@ -50,9 +48,7 @@ def fetch(url):
             if isinstance(data, list):
                 return data
 
-        except requests.RequestException:
-            pass
-        except ValueError:
+        except:
             pass
 
         if attempt + 1 < MAX_RETRIES:
@@ -72,19 +68,32 @@ def build():
     if pets is None or rap is None:
         return None
 
+    now = time.time()
+
     lookup = {}
 
     for pet in pets:
         if pet.get("category") != "Huge":
             continue
 
+        # date filter
+        date_str = pet.get("dateModified")
+        if not date_str:
+            continue
+
+        try:
+            pet_time = datetime.fromisoformat(date_str.replace("Z", "+00:00")).timestamp()
+        except:
+            continue
+
+        # ONLY older than 14 days
+        if now - pet_time <= MAX_AGE_SECONDS:
+            continue
+
         name = pet.get("configName")
         config = pet.get("configData")
 
-        if not isinstance(name, str):
-            continue
-
-        if not isinstance(config, dict):
+        if not isinstance(name, str) or not isinstance(config, dict):
             continue
 
         thumbnail = config.get("thumbnail")
@@ -124,9 +133,8 @@ def build():
 
         output[thumbnail] = int(value)
 
-    # 🔥 ADD: Roblox-like timestamp
     return {
-        "LastSuccessfulAPIRequest": int(time.time()),
+        "LastSuccessfulAPIRequest": int(now),
         "data": output
     } if output else None
 
@@ -136,6 +144,8 @@ def build():
 # =====================
 
 def save(data):
+    os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
+
     temp_file = OUTPUT_FILE + ".tmp"
 
     with open(temp_file, "w", encoding="utf-8") as f:
