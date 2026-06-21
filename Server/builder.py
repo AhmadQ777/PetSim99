@@ -20,13 +20,17 @@ def send_discord(msg):
         pass
 
 
-def fetch(url):
-    try:
-        r = requests.get(url, timeout=10)
-        r.raise_for_status()
-        return r.json().get("data", [])
-    except Exception:
-        return None  # None = Fehler, [] = leere aber gültige Antwort
+def fetch(url, name):
+    for attempt in range(5):
+        try:
+            r = requests.get(url, timeout=10)
+            r.raise_for_status()
+            return r.json().get("data", [])
+        except Exception:
+            time.sleep(2 * (attempt + 1))  # 2s,4s,6s,8s,10s
+
+    send_discord(f"API FAILED AFTER 5 TRIES: {name}")
+    return None
 
 
 def build():
