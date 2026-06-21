@@ -1,11 +1,12 @@
 import json
 import requests
 from datetime import datetime
+import os
 
 PETS_URL = "https://ps99.biggamesapi.io/api/collection/Pets"
 RAP_URL = "https://ps99.biggamesapi.io/api/rap"
 
-OUTPUT_FILE = "ITEMS_DATA.json"
+OUTPUT_FILE = "Server/ITEMS_DATA.json"
 
 WEBHOOK_URL = "https://discord.com/api/webhooks/1518233664771588307/pbbS7bP6GRvczqDjs-fzhjRVuTabzOaohnnffrpjWApjuInrqsFCcHgIx72TPvubH36X"
 
@@ -15,7 +16,6 @@ HUGE_MAX_VALUE = 30000000
 
 def send_discord(status, success=True):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
     msg = f"[{now}] Status: {status} | Success: {success}"
 
     try:
@@ -65,6 +65,8 @@ def build():
 
 
 def save(data):
+    os.makedirs("Server", exist_ok=True)
+
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, separators=(",", ":"))
 
