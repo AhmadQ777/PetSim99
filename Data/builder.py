@@ -65,6 +65,7 @@ def fetch(url):
 # BUILD
 # =====================
 
+
 def build():
     pets = fetch(PETS_URL)
     rap = fetch(RAP_URL)
@@ -72,7 +73,7 @@ def build():
     if pets is None or rap is None:
         return None
 
-    thumbnail_lookup = {}
+    lookup = {}
 
     for pet in pets:
         if pet.get("category") != "Huge":
@@ -81,23 +82,21 @@ def build():
         name = pet.get("configName")
         config = pet.get("configData")
 
+        if not isinstance(name, str):
+            continue
+
         if not isinstance(config, dict):
             continue
 
         thumbnail = config.get("thumbnail")
 
-        if not isinstance(name, str):
-            continue
-
         if not isinstance(thumbnail, str):
             continue
-
-        thumbnail = thumbnail.strip()
 
         if not thumbnail.startswith("rbxassetid://"):
             continue
 
-        thumbnail_lookup[name.strip().lower()] = thumbnail
+        lookup[name.strip().lower()] = thumbnail
 
     output = {}
 
@@ -108,11 +107,10 @@ def build():
             continue
 
         pet_name = config.get("id")
+        value = entry.get("value")
 
         if not isinstance(pet_name, str):
             continue
-
-        value = entry.get("value")
 
         if not isinstance(value, (int, float)):
             continue
@@ -120,14 +118,14 @@ def build():
         if not (HUGE_MIN_VALUE <= value <= HUGE_MAX_VALUE):
             continue
 
-        thumbnail = thumbnail_lookup.get(
-            pet_name.strip().lower()
-        )
+        thumbnail = lookup.get(pet_name.strip().lower())
 
-        if thumbnail:
-            output[thumbnail] = int(value)
+        if not thumbnail:
+            continue
 
-    return output
+        output[thumbnail] = int(value)
+
+    return output if output else None
 
 
 # =====================
@@ -135,20 +133,10 @@ def build():
 # =====================
 
 def save(data):
-    directory = os.path.dirname(OUTPUT_FILE)
-
-    if directory:
-        os.makedirs(directory, exist_ok=True)
-
     temp_file = OUTPUT_FILE + ".tmp"
 
-    with open(temp_file, "w", encoding="utf-8") as file:
-        json.dump(
-            data,
-            file,
-            separators=(",", ":"),
-            ensure_ascii=False
-        )
+    with open(temp_file, "w", encoding="utf-8") as f:
+        json.dump(data, f, separators=(",", ":"))
 
     os.replace(temp_file, OUTPUT_FILE)
 
