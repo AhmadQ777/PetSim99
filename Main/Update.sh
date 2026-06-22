@@ -1,5 +1,5 @@
 # ==============================
-# TERMUX ULTRA STABLE WATCHDOG (SMART MAIN CALL MODE)
+# TERMUX ULTRA STABLE WATCHDOG (BOOTSTRAP FIXED)
 # ==============================
 
 pkg update -y && pkg upgrade -y
@@ -28,6 +28,29 @@ retry_download() {
     return 1
 }
 
+# ---------------- FORCE BOOTSTRAP CHECK ----------------
+bootstrap() {
+    # Config sofort holen
+    retry_download \
+    "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json" \
+    "Config.json" || return 1
+
+    LUA_URL=$(python -c "import json;print(json.load(open('Config.json'))['Info']['Main']['Url'])")
+    PY_URL=$(python -c "import json;print(json.load(open('Config.json'))['Info']['API']['Url'])")
+
+    # LUA FILE CHECK
+    if [ ! -f /storage/emulated/0/Delta/Autoexecute/Main.lua ]; then
+        retry_download "$LUA_URL" "/storage/emulated/0/Delta/Autoexecute/Main.lua"
+    fi
+
+    # PY FILE CHECK
+    if [ ! -f /storage/emulated/0/Delta/Workspace/API.py ]; then
+        retry_download "$PY_URL" "/storage/emulated/0/Delta/Workspace/API.py"
+    fi
+}
+
+bootstrap
+
 # ---------------- LOOP ----------------
 while true; do
 
@@ -39,7 +62,6 @@ while true; do
         continue
     fi
 
-    # READ CONFIG
     read LUA_URL LUA_VER PY_URL PY_VER <<EOF
 $(python - <<'PY'
 import json
@@ -57,7 +79,6 @@ PY
 )
 EOF
 
-    # READ STATE
     read LUA_STATE PY_STATE <<EOF
 $(python - <<'PY'
 import json
@@ -70,37 +91,29 @@ PY
 )
 EOF
 
-    # =============================
-    # LUA UPDATE (ONLY IF CHANGED)
-    # =============================
+    # ---------------- LUA UPDATE ----------------
     if [ "$LUA_VER" != "$LUA_STATE" ]; then
-        if retry_download "$LUA_URL" "/storage/emulated/0/Delta/Autoexecute/Main.lua"; then
-            python - <<PY
+        retry_download "$LUA_URL" "/storage/emulated/0/Delta/Autoexecute/Main.lua" || continue
+        python - <<PY
 import json
 d=json.load(open("state.json"))
 d["lua_ver"]="$LUA_VER"
 json.dump(d,open("state.json","w"))
 PY
-        fi
     fi
 
-    # =============================
-    # PY UPDATE (ONLY IF CHANGED)
-    # =============================
+    # ---------------- PY UPDATE ----------------
     if [ "$PY_VER" != "$PY_STATE" ]; then
-        if retry_download "$PY_URL" "/storage/emulated/0/Delta/Workspace/API.py"; then
-            python - <<PY
+        retry_download "$PY_URL" "/storage/emulated/0/Delta/Workspace/API.py" || continue
+        python - <<PY
 import json
 d=json.load(open("state.json"))
 d["py_ver"]="$PY_VER"
 json.dump(d,open("state.json","w"))
 PY
-        fi
     fi
 
-    # =============================
-    # ALWAYS CALL MAIN (SAFE IMPORT)
-    # =============================
+    # ---------------- MAIN CALL ----------------
     python - <<'PY' 2>/dev/null || true
 import sys
 sys.path.append("/storage/emulated/0/Delta/Workspace")
