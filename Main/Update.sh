@@ -1,11 +1,13 @@
 # ==============================
-# TERMUX FULL AUTO WATCHDOG FIXED
+# TERMUX FULL AUTO WATCHDOG (STABLE + WAKE LOCK + AUTO RESTART)
 # ==============================
 
 pkg update -y && pkg upgrade -y
 pkg install python curl tmux procps -y
 pip install requests
+
 termux-setup-storage
+termux-wake-lock
 
 mkdir -p ~/PetSim99
 mkdir -p /storage/emulated/0/Delta/Autoexecute
@@ -14,7 +16,7 @@ mkdir -p /storage/emulated/0/Delta/Workspace
 cd ~/PetSim99
 
 # ---------------- STATE SAFE ----------------
-echo '{"lua_ver":"","py_ver":""}' > state.json
+[ ! -f state.json ] && echo '{"lua_ver":"","py_ver":""}' > state.json
 
 # ---------------- WEBHOOK ----------------
 WEBHOOK="https://discord.com/api/webhooks/XXXXX"
@@ -28,11 +30,11 @@ send_hook() {
 
 send_hook "🟢 Watchdog gestartet"
 
-# ---------------- API START ----------------
+# ---------------- START API ----------------
 start_api() {
     pkill -f "API.py" 2>/dev/null
     sleep 1
-    nohup python /storage/emulated/0/Delta/Workspace/API.py >/dev/null 2>&1 &
+    nohup python /storage/emulated/0/Delta/Workspace/API.py > /storage/emulated/0/Delta/Workspace/log.txt 2>&1 &
 }
 
 # ---------------- SAFE DOWNLOAD ----------------
@@ -47,16 +49,16 @@ retry_download() {
     return 1
 }
 
-# ---------------- LOOP ----------------
+# ---------------- MAIN LOOP ----------------
 while true; do
 
-    # CONFIG
+    # CONFIG DOWNLOAD
     if ! retry_download "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json" "Config.json"; then
         sleep 180
         continue
     fi
 
-    # VALIDATE JSON
+    # VALID JSON CHECK
     python - <<'EOF'
 import json,sys
 try:
@@ -93,7 +95,7 @@ EOF
         fi
     fi
 
-    # CRASH SAFE API CHECK
+    # CRASH SAFE RESTART
     if ! pgrep -f "API.py" >/dev/null; then
         start_api
         send_hook "🔁 API restarted"
