@@ -1,5 +1,5 @@
 # ==============================
-# TERMUX ULTRA STABLE WATCHDOG (NO WEBHOOK - FIXED UPDATE)
+# TERMUX ULTRA STABLE WATCHDOG (NO WEBHOOK - FIXED CURL)
 # ==============================
 
 pkg update -y && pkg upgrade -y
@@ -22,14 +22,14 @@ fi
 # ---------------- START API ----------------
 start_api() {
     pkill -9 -f "API.py" 2>/dev/null
-    sleep 2
+    sleep 1
     nohup python /storage/emulated/0/Delta/Workspace/API.py > /storage/emulated/0/Delta/Workspace/log.txt 2>&1 &
 }
 
-# ---------------- DOWNLOAD SAFE ----------------
+# ---------------- DOWNLOAD SAFE (FIXED CURL) ----------------
 retry_download() {
     for i in 1 2 3; do
-        curl -s --fail --no-cache --max-time 10 "$1" -o "$2" && return 0
+        curl -s --fail --max-time 10 -H "Cache-Control: no-cache" "$1" -o "$2" && return 0
         sleep 2
     done
     return 1
@@ -74,19 +74,21 @@ PY
 )
 EOF
 
+    # LUA UPDATE
     if [ "$LUA_VER" != "$LUA_STATE" ]; then
         if retry_download "$LUA_URL" "/storage/emulated/0/Delta/Autoexecute/Main.lua"; then
             python -c "import json;d=json.load(open('state.json'));d['lua_ver']='$LUA_VER';json.dump(d,open('state.json','w'))"
         fi
     fi
 
+    # PY UPDATE
     if [ "$PY_VER" != "$PY_STATE" ]; then
         if retry_download "$PY_URL" "/storage/emulated/0/Delta/Workspace/API.py"; then
             python -c "import json;d=json.load(open('state.json'));d['py_ver']='$PY_VER';json.dump(d,open('state.json','w'))"
         fi
     fi
 
-    # FORCE RESTART (FIXED)
+    # FORCE RESTART
     pkill -9 -f API.py 2>/dev/null
     sleep 1
     start_api
