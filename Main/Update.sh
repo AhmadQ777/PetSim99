@@ -1,10 +1,9 @@
 # ==============================
-# TERMUX FULL AUTO WATCHDOG (STABLE + WAKE LOCK + AUTO RESTART)
+# TERMUX ULTRA STABLE WATCHDOG
 # ==============================
 
 pkg update -y && pkg upgrade -y
 pkg install python curl tmux procps -y
-pip install requests
 
 termux-setup-storage
 termux-wake-lock
@@ -15,16 +14,17 @@ mkdir -p /storage/emulated/0/Delta/Workspace
 
 cd ~/PetSim99
 
-# ---------------- STATE SAFE ----------------
-[ ! -f state.json ] && echo '{"lua_ver":"","py_ver":""}' > state.json
+# ---------------- SAFE STATE INIT ----------------
+if [ ! -f state.json ] || ! python -c "import json;json.load(open('state.json'))" 2>/dev/null; then
+    echo '{"lua_ver":"","py_ver":""}' > state.json
+fi
 
 # ---------------- WEBHOOK ----------------
 WEBHOOK="https://discord.com/api/webhooks/XXXXX"
 
 send_hook() {
-    MSG="$1"
     curl -s -H "Content-Type: application/json" \
-    -d "{\"content\":\"$MSG\"}" \
+    -d "{\"content\":\"$1\"}" \
     "$WEBHOOK" >/dev/null 2>&1
 }
 
@@ -33,51 +33,53 @@ send_hook "🟢 Watchdog gestartet"
 # ---------------- START API ----------------
 start_api() {
     pkill -f "API.py" 2>/dev/null
-    sleep 1
-    nohup python /storage/emulated/0/Delta/Workspace/API.py > /storage/emulated/0/Delta/Workspace/log.txt 2>&1 &
+    sleep 2
+    nohup python /storage/emulated/0/Delta/Workspace/API.py > /dev/null 2>&1 &
 }
 
-# ---------------- SAFE DOWNLOAD ----------------
+# ---------------- DOWNLOAD SAFE ----------------
 retry_download() {
-    URL="$1"
-    OUT="$2"
-
     for i in 1 2 3; do
-        curl -s --fail --max-time 10 "$URL" -o "$OUT" && return 0
+        curl -s --fail --max-time 10 "$1" -o "$2" && return 0
         sleep 2
     done
     return 1
 }
 
-# ---------------- MAIN LOOP ----------------
+# ---------------- LOOP ----------------
 while true; do
 
-    # CONFIG DOWNLOAD
-    if ! retry_download "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json" "Config.json"; then
+    # CONFIG
+    if ! retry_download \
+    "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json" \
+    "Config.json"; then
         sleep 180
         continue
     fi
 
-    # VALID JSON CHECK
-    python - <<'EOF'
-import json,sys
-try:
-    json.load(open("Config.json"))
-except:
-    sys.exit(1)
+    # SAFE READ CONFIG (1x python only)
+    read LUA_URL LUA_VER PY_URL PY_VER <<EOF
+$(python - <<'PY'
+import json
+d=json.load(open("Config.json"))
+print(
+d["Info"]["Main"]["Url"],
+d["Info"]["Main"]["Version"],
+d["Info"]["API"]["Url"],
+d["Info"]["API"]["Version"]
+)
+PY
+)
 EOF
 
-    [ $? -ne 0 ] && sleep 180 && continue
-
-    # READ CONFIG
-    LUA_URL=$(python -c "import json;d=json.load(open('Config.json'));print(d['Info']['Main']['Url'])")
-    LUA_VER=$(python -c "import json;d=json.load(open('Config.json'));print(d['Info']['Main']['Version'])")
-
-    PY_URL=$(python -c "import json;d=json.load(open('Config.json'));print(d['Info']['API']['Url'])")
-    PY_VER=$(python -c "import json;d=json.load(open('Config.json'));print(d['Info']['API']['Version'])")
-
-    LUA_STATE=$(python -c "import json;d=json.load(open('state.json'));print(d.get('lua_ver',''))")
-    PY_STATE=$(python -c "import json;d=json.load(open('state.json'));print(d.get('py_ver',''))")
+    read LUA_STATE PY_STATE <<EOF
+$(python - <<'PY'
+import json
+d=json.load(open("state.json"))
+print(d.get("lua_ver",""), d.get("py_ver",""))
+PY
+)
+EOF
 
     # LUA UPDATE
     if [ "$LUA_VER" != "$LUA_STATE" ]; then
@@ -95,10 +97,11 @@ EOF
         fi
     fi
 
-    # CRASH SAFE RESTART
+    # API CHECK (no spam restart)
     if ! pgrep -f "API.py" >/dev/null; then
         start_api
         send_hook "🔁 API restarted"
+        sleep 10
     fi
 
     sleep 180
