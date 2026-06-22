@@ -1,5 +1,5 @@
 # ==============================
-# TERMUX ULTRA STABLE WATCHDOG
+# TERMUX ULTRA STABLE WATCHDOG (FORCE RESTART MODE)
 # ==============================
 
 pkg update -y && pkg upgrade -y
@@ -34,7 +34,7 @@ send_hook "🟢 Watchdog gestartet"
 start_api() {
     pkill -f "API.py" 2>/dev/null
     sleep 2
-    nohup python /storage/emulated/0/Delta/Workspace/API.py > /dev/null 2>&1 &
+    nohup python /storage/emulated/0/Delta/Workspace/API.py > /storage/emulated/0/Delta/Workspace/log.txt 2>&1 &
 }
 
 # ---------------- DOWNLOAD SAFE ----------------
@@ -57,7 +57,7 @@ while true; do
         continue
     fi
 
-    # SAFE READ CONFIG (1x python only)
+    # READ CONFIG (FAST)
     read LUA_URL LUA_VER PY_URL PY_VER <<EOF
 $(python - <<'PY'
 import json
@@ -81,7 +81,7 @@ PY
 )
 EOF
 
-    # LUA UPDATE
+    # ---------------- LUA UPDATE ----------------
     if [ "$LUA_VER" != "$LUA_STATE" ]; then
         if retry_download "$LUA_URL" "/storage/emulated/0/Delta/Autoexecute/Main.lua"; then
             python -c "import json;d=json.load(open('state.json'));d['lua_ver']='$LUA_VER';json.dump(d,open('state.json','w'))"
@@ -89,7 +89,7 @@ EOF
         fi
     fi
 
-    # PY UPDATE
+    # ---------------- PY UPDATE ----------------
     if [ "$PY_VER" != "$PY_STATE" ]; then
         if retry_download "$PY_URL" "/storage/emulated/0/Delta/Workspace/API.py"; then
             python -c "import json;d=json.load(open('state.json'));d['py_ver']='$PY_VER';json.dump(d,open('state.json','w'))"
@@ -97,12 +97,12 @@ EOF
         fi
     fi
 
-    # API CHECK (no spam restart)
-    if ! pgrep -f "API.py" >/dev/null; then
-        start_api
-        send_hook "🔁 API restarted"
-        sleep 10
-    fi
+    # ---------------- FORCE RESTART API (NEW FEATURE) ----------------
+    pkill -f "API.py" 2>/dev/null
+    start_api
+
+    # optional log
+    echo "🔁 API forced restart at $(date)"
 
     sleep 180
 
