@@ -154,9 +154,12 @@ def save(data):
 # =====================
 
 def main():
-    data = build()
-    if data:
-        save(data)
+    try:
+        data = build()
+        if data:
+            save(data)
+    except Exception as e:
+        print("Error:", e)
 
 
 if __name__ == "__main__":
