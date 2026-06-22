@@ -1,5 +1,5 @@
 # ==============================
-# TERMUX ULTRA STABLE WATCHDOG (NO WEBHOOK)
+# TERMUX ULTRA STABLE WATCHDOG (NO WEBHOOK - FIXED UPDATE)
 # ==============================
 
 pkg update -y && pkg upgrade -y
@@ -21,7 +21,7 @@ fi
 
 # ---------------- START API ----------------
 start_api() {
-    pkill -f "API.py" 2>/dev/null
+    pkill -9 -f "API.py" 2>/dev/null
     sleep 2
     nohup python /storage/emulated/0/Delta/Workspace/API.py > /storage/emulated/0/Delta/Workspace/log.txt 2>&1 &
 }
@@ -29,7 +29,7 @@ start_api() {
 # ---------------- DOWNLOAD SAFE ----------------
 retry_download() {
     for i in 1 2 3; do
-        curl -s --fail --max-time 10 "$1" -o "$2" && return 0
+        curl -s --fail --no-cache --max-time 10 "$1" -o "$2" && return 0
         sleep 2
     done
     return 1
@@ -48,13 +48,16 @@ while true; do
     read LUA_URL LUA_VER PY_URL PY_VER <<EOF
 $(python - <<'PY'
 import json
-d=json.load(open("Config.json"))
-print(
-d["Info"]["Main"]["Url"],
-d["Info"]["Main"]["Version"],
-d["Info"]["API"]["Url"],
-d["Info"]["API"]["Version"]
-)
+try:
+    d=json.load(open("Config.json"))
+    print(
+        d["Info"]["Main"]["Url"],
+        d["Info"]["Main"]["Version"],
+        d["Info"]["API"]["Url"],
+        d["Info"]["API"]["Version"]
+    )
+except:
+    print("", "", "", "")
 PY
 )
 EOF
@@ -62,8 +65,11 @@ EOF
     read LUA_STATE PY_STATE <<EOF
 $(python - <<'PY'
 import json
-d=json.load(open("state.json"))
-print(d.get("lua_ver",""), d.get("py_ver",""))
+try:
+    d=json.load(open("state.json"))
+    print(d.get("lua_ver",""), d.get("py_ver",""))
+except:
+    print("", "")
 PY
 )
 EOF
@@ -80,7 +86,9 @@ EOF
         fi
     fi
 
-    pkill -f API.py 2>/dev/null
+    # FORCE RESTART (FIXED)
+    pkill -9 -f API.py 2>/dev/null
+    sleep 1
     start_api
 
     echo "🔁 API forced restart at $(date)"
