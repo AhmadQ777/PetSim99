@@ -1,5 +1,5 @@
 # ==============================
-# TERMUX ULTRA STABLE WATCHDOG (NO WEBHOOK - FIXED CURL)
+# TERMUX ULTRA STABLE WATCHDOG (SMART MAIN CALL MODE)
 # ==============================
 
 pkg update -y && pkg upgrade -y
@@ -19,14 +19,7 @@ if [ ! -f state.json ] || ! python -c "import json;json.load(open('state.json'))
     echo '{"lua_ver":"","py_ver":""}' > state.json
 fi
 
-# ---------------- START API ----------------
-start_api() {
-    pkill -9 -f "API.py" 2>/dev/null
-    sleep 1
-    nohup python /storage/emulated/0/Delta/Workspace/API.py > /storage/emulated/0/Delta/Workspace/log.txt 2>&1 &
-}
-
-# ---------------- DOWNLOAD SAFE (FIXED CURL) ----------------
+# ---------------- DOWNLOAD SAFE ----------------
 retry_download() {
     for i in 1 2 3; do
         curl -s --fail --max-time 10 -H "Cache-Control: no-cache" "$1" -o "$2" && return 0
@@ -38,6 +31,7 @@ retry_download() {
 # ---------------- LOOP ----------------
 while true; do
 
+    # CONFIG FETCH
     if ! retry_download \
     "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json" \
     "Config.json"; then
@@ -45,6 +39,7 @@ while true; do
         continue
     fi
 
+    # READ CONFIG
     read LUA_URL LUA_VER PY_URL PY_VER <<EOF
 $(python - <<'PY'
 import json
@@ -62,6 +57,7 @@ PY
 )
 EOF
 
+    # READ STATE
     read LUA_STATE PY_STATE <<EOF
 $(python - <<'PY'
 import json
@@ -74,26 +70,50 @@ PY
 )
 EOF
 
-    # LUA UPDATE
+    # =============================
+    # LUA UPDATE (ONLY IF CHANGED)
+    # =============================
     if [ "$LUA_VER" != "$LUA_STATE" ]; then
         if retry_download "$LUA_URL" "/storage/emulated/0/Delta/Autoexecute/Main.lua"; then
-            python -c "import json;d=json.load(open('state.json'));d['lua_ver']='$LUA_VER';json.dump(d,open('state.json','w'))"
+            python - <<PY
+import json
+d=json.load(open("state.json"))
+d["lua_ver"]="$LUA_VER"
+json.dump(d,open("state.json","w"))
+PY
         fi
     fi
 
-    # PY UPDATE
+    # =============================
+    # PY UPDATE (ONLY IF CHANGED)
+    # =============================
     if [ "$PY_VER" != "$PY_STATE" ]; then
         if retry_download "$PY_URL" "/storage/emulated/0/Delta/Workspace/API.py"; then
-            python -c "import json;d=json.load(open('state.json'));d['py_ver']='$PY_VER';json.dump(d,open('state.json','w'))"
+            python - <<PY
+import json
+d=json.load(open("state.json"))
+d["py_ver"]="$PY_VER"
+json.dump(d,open("state.json","w"))
+PY
         fi
     fi
 
-    # FORCE RESTART
-    pkill -9 -f API.py 2>/dev/null
-    sleep 1
-    start_api
+    # =============================
+    # ALWAYS CALL MAIN (SAFE IMPORT)
+    # =============================
+    python - <<'PY' 2>/dev/null || true
+import sys
+sys.path.append("/storage/emulated/0/Delta/Workspace")
 
-    echo "🔁 API forced restart at $(date)"
+import API
+
+try:
+    API.main()
+except:
+    pass
+PY
+
+    echo "▶ API.main() executed at $(date)"
 
     sleep 180
 
