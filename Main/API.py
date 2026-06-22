@@ -4,7 +4,7 @@ import time
 import requests
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
-
+print("Checking if sth works")
 # =====================
 # CONFIG
 # =====================
