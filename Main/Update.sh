@@ -10,7 +10,7 @@ mkdir -p ~/ps99
 cd ~/ps99
 
 while true; do
-    curl -s "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/builder.py" -o builder.py
+    curl -s "https://raw.githubusercontent.com/AhmadQ777/PetSim99/refs/heads/main/Data/Config.json" -o Config.json
     python builder.py
     sleep 180
 done
