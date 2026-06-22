@@ -1,5 +1,5 @@
 # ==============================
-# TERMUX ULTRA STABLE WATCHDOG (FORCE RESTART MODE)
+# TERMUX ULTRA STABLE WATCHDOG (NO WEBHOOK)
 # ==============================
 
 pkg update -y && pkg upgrade -y
@@ -18,17 +18,6 @@ cd ~/PetSim99
 if [ ! -f state.json ] || ! python -c "import json;json.load(open('state.json'))" 2>/dev/null; then
     echo '{"lua_ver":"","py_ver":""}' > state.json
 fi
-
-# ---------------- WEBHOOK ----------------
-WEBHOOK="https://discord.com/api/webhooks/XXXXX"
-
-send_hook() {
-    curl -s -H "Content-Type: application/json" \
-    -d "{\"content\":\"$1\"}" \
-    "$WEBHOOK" >/dev/null 2>&1
-}
-
-send_hook "🟢 Watchdog gestartet"
 
 # ---------------- START API ----------------
 start_api() {
@@ -49,7 +38,6 @@ retry_download() {
 # ---------------- LOOP ----------------
 while true; do
 
-    # CONFIG
     if ! retry_download \
     "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json" \
     "Config.json"; then
@@ -57,7 +45,6 @@ while true; do
         continue
     fi
 
-    # READ CONFIG (FAST)
     read LUA_URL LUA_VER PY_URL PY_VER <<EOF
 $(python - <<'PY'
 import json
@@ -81,27 +68,21 @@ PY
 )
 EOF
 
-    # ---------------- LUA UPDATE ----------------
     if [ "$LUA_VER" != "$LUA_STATE" ]; then
         if retry_download "$LUA_URL" "/storage/emulated/0/Delta/Autoexecute/Main.lua"; then
             python -c "import json;d=json.load(open('state.json'));d['lua_ver']='$LUA_VER';json.dump(d,open('state.json','w'))"
-            send_hook "📦 LUA updated $LUA_VER"
         fi
     fi
 
-    # ---------------- PY UPDATE ----------------
     if [ "$PY_VER" != "$PY_STATE" ]; then
         if retry_download "$PY_URL" "/storage/emulated/0/Delta/Workspace/API.py"; then
             python -c "import json;d=json.load(open('state.json'));d['py_ver']='$PY_VER';json.dump(d,open('state.json','w'))"
-            send_hook "📦 API updated $PY_VER"
         fi
     fi
 
-    # ---------------- FORCE RESTART API (NEW FEATURE) ----------------
-    pkill -f "API.py" 2>/dev/null
+    pkill -f API.py 2>/dev/null
     start_api
 
-    # optional log
     echo "🔁 API forced restart at $(date)"
 
     sleep 180
