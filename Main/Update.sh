@@ -1,5 +1,5 @@
 # ==============================
-# TERMUX WATCHDOG (FIXED + CONSISTENT PATH + RELIABLE)
+# TERMUX WATCHDOG (RAM STATE ONLY, NO STATE FILE)
 # ==============================
 
 pkg update -y && pkg upgrade -y
@@ -18,9 +18,8 @@ echo "🚀 WATCHDOG START"
 
 WORKSPACE="/sdcard/Delta/Workspace"
 AUTOEXEC="/sdcard/Delta/Autoexecute"
-CONFIG="$WORKSPACE/Config.json"
 
-CONFIG_URL="https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json"
+CONFIG_URL="https://raw.githubusercontent.com/AhmadQ777/PetSim99/refs/heads/main/Data/Config.json"
 
 retry_download() {
     for i in 1 2 3; do
@@ -39,22 +38,24 @@ start_api() {
         return
     fi
 
+    echo "🚀 START API"
     nohup python "$WORKSPACE/API.py" > "$WORKSPACE/log.txt" 2>&1 &
-    echo "🚀 API STARTED"
 }
 
-# ---------------- INITIAL ----------------
-retry_download "$CONFIG_URL?nocache=$(date +%s)" "$CONFIG"
+# ---------------- INITIAL DOWNLOAD ----------------
+echo "📥 downloading config..."
 
-if ! python -c "import json;json.load(open('$CONFIG'))" 2>/dev/null; then
-    echo "❌ INVALID CONFIG"
+retry_download "$CONFIG_URL?nocache=$(date +%s)" "$WORKSPACE/config.tmp.json"
+
+if ! python -c "import json;json.load(open('$WORKSPACE/config.tmp.json'))" 2>/dev/null; then
+    echo "❌ invalid config"
     exit 1
 fi
 
 read OLD_LUA OLD_PY LUA_URL PY_URL <<EOF
 $(python - <<PY
 import json
-d=json.load(open("$CONFIG"))
+d=json.load(open("/sdcard/Delta/Workspace/config.tmp.json"))
 print(
     d["Info"]["Main"]["Version"],
     d["Info"]["API"]["Version"],
@@ -64,6 +65,8 @@ print(
 PY
 )
 EOF
+
+echo "📦 initial download..."
 
 retry_download "$LUA_URL" "$AUTOEXEC/Main.lua"
 retry_download "$PY_URL" "$WORKSPACE/API.py"
@@ -73,12 +76,12 @@ start_api
 # ---------------- LOOP ----------------
 while true; do
 
-    echo "🔁 CHECKING CONFIG"
+    echo "🔁 checking config..."
 
-    retry_download "$CONFIG_URL?nocache=$(date +%s)" "$CONFIG"
+    retry_download "$CONFIG_URL?nocache=$(date +%s)" "$WORKSPACE/config.tmp.json"
 
-    if ! python -c "import json;json.load(open('$CONFIG'))" 2>/dev/null; then
-        echo "❌ CONFIG BROKEN"
+    if ! python -c "import json;json.load(open('$WORKSPACE/config.tmp.json'))" 2>/dev/null; then
+        echo "❌ config invalid"
         sleep 180
         continue
     fi
@@ -86,7 +89,7 @@ while true; do
     read NEW_LUA NEW_PY LUA_URL PY_URL <<EOF
 $(python - <<PY
 import json
-d=json.load(open("$CONFIG"))
+d=json.load(open("/sdcard/Delta/Workspace/config.tmp.json"))
 print(
     d["Info"]["Main"]["Version"],
     d["Info"]["API"]["Version"],
@@ -97,23 +100,26 @@ PY
 )
 EOF
 
-    UPDATED=0
+    UPDATED_API=0
 
+    # LUA UPDATE
     if [ "$NEW_LUA" != "$OLD_LUA" ]; then
         echo "📦 LUA UPDATE"
         retry_download "$LUA_URL" "$AUTOEXEC/Main.lua"
         OLD_LUA="$NEW_LUA"
     fi
 
+    # API UPDATE
     if [ "$NEW_PY" != "$OLD_PY" ]; then
         echo "📦 API UPDATE"
         if retry_download "$PY_URL" "$WORKSPACE/API.py"; then
             OLD_PY="$NEW_PY"
-            UPDATED=1
+            UPDATED_API=1
         fi
     fi
 
-    if [ "$UPDATED" -eq 1 ]; then
+    # RESTART ONLY IF API UPDATED
+    if [ "$UPDATED_API" -eq 1 ]; then
         echo "🔄 RESTART API"
         start_api
     fi
