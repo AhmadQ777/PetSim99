@@ -1,5 +1,5 @@
 # ==============================
-# TERMUX ULTRA STABLE WATCHDOG (NO WEBHOOK - FIXED CURL)
+# TERMUX WATCHDOG (UPDATE-BASED, NO CONSTANT RESTART)
 # ==============================
 
 pkg update -y && pkg upgrade -y
@@ -14,19 +14,24 @@ mkdir -p /storage/emulated/0/Delta/Workspace
 
 cd ~/PetSim99
 
+echo "🚀 WATCHDOG STARTED"
+
 # ---------------- SAFE STATE INIT ----------------
 if [ ! -f state.json ] || ! python -c "import json;json.load(open('state.json'))" 2>/dev/null; then
     echo '{"lua_ver":"","py_ver":""}' > state.json
 fi
 
-# ---------------- START API ----------------
+# ---------------- START API ONCE ----------------
 start_api() {
     pkill -9 -f "API.py" 2>/dev/null
     sleep 1
     nohup python /storage/emulated/0/Delta/Workspace/API.py > /storage/emulated/0/Delta/Workspace/log.txt 2>&1 &
 }
 
-# ---------------- DOWNLOAD SAFE (FIXED CURL) ----------------
+start_api
+echo "✅ API STARTED"
+
+# ---------------- DOWNLOAD SAFE ----------------
 retry_download() {
     for i in 1 2 3; do
         curl -s --fail --max-time 10 -H "Cache-Control: no-cache" "$1" -o "$2" && return 0
@@ -38,9 +43,12 @@ retry_download() {
 # ---------------- LOOP ----------------
 while true; do
 
+    echo "📥 Checking Config..."
+
     if ! retry_download \
     "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json" \
     "Config.json"; then
+        echo "❌ Config failed"
         sleep 180
         continue
     fi
@@ -74,27 +82,35 @@ PY
 )
 EOF
 
-    # LUA UPDATE
+    UPDATED_API=0
+
+    # ---------------- LUA ----------------
     if [ "$LUA_VER" != "$LUA_STATE" ]; then
+        echo "📦 Updating Main.lua..."
         if retry_download "$LUA_URL" "/storage/emulated/0/Delta/Autoexecute/Main.lua"; then
             python -c "import json;d=json.load(open('state.json'));d['lua_ver']='$LUA_VER';json.dump(d,open('state.json','w'))"
+            echo "✅ Main.lua updated"
         fi
     fi
 
-    # PY UPDATE
+    # ---------------- PY ----------------
     if [ "$PY_VER" != "$PY_STATE" ]; then
+        echo "📦 Updating API.py..."
         if retry_download "$PY_URL" "/storage/emulated/0/Delta/Workspace/API.py"; then
             python -c "import json;d=json.load(open('state.json'));d['py_ver']='$PY_VER';json.dump(d,open('state.json','w'))"
+            UPDATED_API=1
+            echo "✅ API.py updated"
         fi
     fi
 
-    # FORCE RESTART
-    pkill -9 -f API.py 2>/dev/null
-    sleep 1
-    start_api
+    # ---------------- RESTART ONLY IF UPDATED ----------------
+    if [ "$UPDATED_API" -eq 1 ]; then
+        echo "🔄 Restarting API..."
+        start_api
+        echo "✅ API restarted"
+    fi
 
-    echo "🔁 API forced restart at $(date)"
-
+    echo "⏳ Sleep 180s..."
     sleep 180
 
 done
