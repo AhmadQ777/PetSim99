@@ -1,6 +1,4 @@
-# ==============================
-# TERMUX WATCHDOG (ROBUST + NO CACHE + CLEAN COMPARE)
-# ==============================
+set -x
 
 pkg update -y && pkg upgrade -y
 pkg install python curl tmux procps -y
@@ -14,73 +12,87 @@ mkdir -p /sdcard/Delta/Workspace
 
 cd ~/PetSim99
 
+echo "🚀 SCRIPT STARTED"
+
 WORKSPACE="/sdcard/Delta/Workspace"
 AUTOEXEC="/sdcard/Delta/Autoexecute"
 CONFIG="$WORKSPACE/Config.json"
 
-echo "🚀 WATCHDOG START"
-
 retry_download() {
     for i in 1 2 3; do
-        curl -s --fail --max-time 10 "$1" -o "$2" && return 0
+        echo "⬇️ download attempt $i $1"
+        curl -v --fail --max-time 10 "$1" -o "$2" && return 0
         sleep 2
     done
     return 1
 }
 
-# FORCE NO CACHE URL
-CONFIG_URL="https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json?nocache="
+CONFIG_URL="https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json?nocache=$(date +%s)"
 
 start_api() {
-    pkill -9 -f "API.py" 2>/dev/null
+    echo "🚀 START API FUNCTION CALLED"
+
+    pkill -9 -f API.py 2>/dev/null
     sleep 1
-    [ ! -f "$WORKSPACE/API.py" ] && echo "❌ API fehlt" && return
+
+    ls -la "$WORKSPACE"
+
+    if [ ! -f "$WORKSPACE/API.py" ]; then
+        echo "❌ API FILE MISSING"
+        return
+    fi
+
+    echo "🚀 RUN API"
     nohup python "$WORKSPACE/API.py" > "$WORKSPACE/log.txt" 2>&1 &
-    echo "🚀 API RUNNING"
+
+    echo "✅ API STARTED"
 }
 
-# ---------------- INITIAL ----------------
-retry_download "${CONFIG_URL}$(date +%s)" "$CONFIG"
+echo "📥 DOWNLOAD CONFIG"
+
+retry_download "$CONFIG_URL" "$CONFIG"
+
+echo "📄 CONFIG CONTENT:"
+cat "$CONFIG"
 
 read OLD_LUA OLD_PY LUA_URL PY_URL <<EOF
 $(python - <<PY
 import json
 d=json.load(open("$CONFIG"))
 print(
-    str(d["Info"]["Main"]["Version"]).strip(),
-    str(d["Info"]["API"]["Version"]).strip(),
+    d["Info"]["Main"]["Version"],
+    d["Info"]["API"]["Version"],
     d["Info"]["Main"]["Url"],
     d["Info"]["API"]["Url"]
 )
 PY
 )
 EOF
+
+echo "📊 OLD LUA=$OLD_LUA"
+echo "📊 OLD PY=$OLD_PY"
 
 retry_download "$LUA_URL" "$AUTOEXEC/Main.lua"
 retry_download "$PY_URL" "$WORKSPACE/API.py"
 
 start_api
 
-# ---------------- LOOP ----------------
 while true; do
 
-    echo "🔁 CHECK CONFIG..."
+    echo "🔁 LOOP RUNNING"
 
-    retry_download "${CONFIG_URL}$(date +%s)" "$CONFIG"
+    retry_download "$CONFIG_URL" "$CONFIG"
 
-    if ! python -c "import json;json.load(open('$CONFIG'))" 2>/dev/null; then
-        echo "❌ CONFIG INVALID"
-        sleep 180
-        continue
-    fi
+    echo "📄 NEW CONFIG:"
+    cat "$CONFIG"
 
     read NEW_LUA NEW_PY LUA_URL PY_URL <<EOF
 $(python - <<PY
 import json
 d=json.load(open("$CONFIG"))
 print(
-    str(d["Info"]["Main"]["Version"]).strip(),
-    str(d["Info"]["API"]["Version"]).strip(),
+    d["Info"]["Main"]["Version"],
+    d["Info"]["API"]["Version"],
     d["Info"]["Main"]["Url"],
     d["Info"]["API"]["Url"]
 )
@@ -88,8 +100,9 @@ PY
 )
 EOF
 
-    echo "📊 LUA $OLD_LUA → $NEW_LUA"
-    echo "📊 PY  $OLD_PY → $NEW_PY"
+    echo "📊 COMPARE"
+    echo "$OLD_LUA -> $NEW_LUA"
+    echo "$OLD_PY -> $NEW_PY"
 
     UPDATED=0
 
@@ -100,11 +113,10 @@ EOF
     fi
 
     if [ "$NEW_PY" != "$OLD_PY" ]; then
-        echo "📦 API UPDATE"
-        if retry_download "$PY_URL" "$WORKSPACE/API.py"; then
-            OLD_PY="$NEW_PY"
-            UPDATED=1
-        fi
+        echo "📦 PY UPDATE"
+        retry_download "$PY_URL" "$WORKSPACE/API.py"
+        OLD_PY="$NEW_PY"
+        UPDATED=1
     fi
 
     if [ "$UPDATED" -eq 1 ]; then
