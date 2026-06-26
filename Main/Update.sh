@@ -1,5 +1,5 @@
 # ==============================
-# TERMUX WATCHDOG (CACHE FIX + UPDATE RELIABLE)
+# TERMUX WATCHDOG (CORRECT LOGIC)
 # ==============================
 
 pkg update -y && pkg upgrade -y
@@ -18,7 +18,7 @@ echo "🚀 WATCHDOG START"
 
 WORKSPACE="/sdcard/Delta/Workspace"
 AUTOEXEC="/sdcard/Delta/Autoexecute"
-CONFIG_FILE="$WORKSPACE/Config.json"
+CONFIG="$WORKSPACE/Config.json"
 
 # ---------------- DOWNLOAD ----------------
 retry_download() {
@@ -29,42 +29,32 @@ retry_download() {
     return 1
 }
 
-# ---------------- CACHE BUSTER ----------------
-get_config_url() {
-    echo "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json?nocache=$(date +%s)"
-}
-
 # ---------------- START API ----------------
 start_api() {
     pkill -9 -f "API.py" 2>/dev/null
     sleep 1
 
     if [ ! -f "$WORKSPACE/API.py" ]; then
-        echo "❌ API.py fehlt"
+        echo "❌ API.py fehlt → kein Start"
         return
     fi
 
-    echo "🚀 Starting API..."
+    echo "🚀 API START"
     nohup python "$WORKSPACE/API.py" > "$WORKSPACE/log.txt" 2>&1 &
-    echo "✅ API running"
 }
 
-# ---------------- INITIAL CONFIG ----------------
-echo "📥 Download Config..."
+# ---------------- INITIAL LOAD ----------------
+retry_download "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json" "$CONFIG"
 
-retry_download "$(get_config_url)" "$CONFIG_FILE"
-
-if ! python -c "import json;json.load(open('$CONFIG_FILE'))" 2>/dev/null; then
+if ! python -c "import json;json.load(open('$CONFIG'))" 2>/dev/null; then
     echo "❌ Config invalid"
     exit 1
 fi
 
-echo "✅ Config OK"
-
-read OLD_LUA_VER OLD_PY_VER LUA_URL PY_URL <<EOF
+read OLD_LUA OLD_PY LUA_URL PY_URL <<EOF
 $(python - <<PY
 import json
-d=json.load(open("$CONFIG_FILE"))
+d=json.load(open("$CONFIG"))
 print(
     d["Info"]["Main"]["Version"],
     d["Info"]["API"]["Version"],
@@ -75,8 +65,7 @@ PY
 )
 EOF
 
-echo "📦 Initial download..."
-
+# initial download
 retry_download "$LUA_URL" "$AUTOEXEC/Main.lua"
 retry_download "$PY_URL" "$WORKSPACE/API.py"
 
@@ -85,20 +74,26 @@ start_api
 # ---------------- LOOP ----------------
 while true; do
 
-    echo "🔁 Checking updates..."
+    echo "🔁 checking config..."
 
-    retry_download "$(get_config_url)" "$CONFIG_FILE"
-
-    if ! python -c "import json;json.load(open('$CONFIG_FILE'))" 2>/dev/null; then
-        echo "❌ Config broken → skip"
+    # download config
+    if ! retry_download "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json" "$CONFIG"; then
+        echo "❌ config fetch failed"
         sleep 180
         continue
     fi
 
-    read NEW_LUA_VER NEW_PY_VER LUA_URL PY_URL <<EOF
+    # validate
+    if ! python -c "import json;json.load(open('$CONFIG'))" 2>/dev/null; then
+        echo "❌ config broken"
+        sleep 180
+        continue
+    fi
+
+    read NEW_LUA NEW_PY LUA_URL PY_URL <<EOF
 $(python - <<PY
 import json
-d=json.load(open("$CONFIG_FILE"))
+d=json.load(open("$CONFIG"))
 print(
     d["Info"]["Main"]["Version"],
     d["Info"]["API"]["Version"],
@@ -109,27 +104,27 @@ PY
 )
 EOF
 
-    echo "📊 LUA: $OLD_LUA_VER → $NEW_LUA_VER"
-    echo "📊 PY : $OLD_PY_VER → $NEW_PY_VER"
-
     UPDATED_API=0
 
-    if [ "$NEW_LUA_VER" != "$OLD_LUA_VER" ]; then
-        echo "📦 Updating Main.lua..."
+    # LUA UPDATE
+    if [ "$NEW_LUA" != "$OLD_LUA" ]; then
+        echo "📦 LUA UPDATE"
         retry_download "$LUA_URL" "$AUTOEXEC/Main.lua"
-        OLD_LUA_VER="$NEW_LUA_VER"
+        OLD_LUA="$NEW_LUA"
     fi
 
-    if [ "$NEW_PY_VER" != "$OLD_PY_VER" ]; then
-        echo "📦 Updating API.py..."
+    # API UPDATE
+    if [ "$NEW_PY" != "$OLD_PY" ]; then
+        echo "📦 API UPDATE"
         if retry_download "$PY_URL" "$WORKSPACE/API.py"; then
-            OLD_PY_VER="$NEW_PY_VER"
+            OLD_PY="$NEW_PY"
             UPDATED_API=1
         fi
     fi
 
+    # restart ONLY if new file downloaded
     if [ "$UPDATED_API" -eq 1 ]; then
-        echo "🔄 Restarting API..."
+        echo "🔄 RESTART API"
         start_api
     fi
 
