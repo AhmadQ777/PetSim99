@@ -8,18 +8,6 @@ cd ~/PetSim99
 # ---------------- STATE ----------------
 [ ! -f state.json ] && echo '{"lua_ver":"","py_ver":""}' > state.json
 
-# ---------------- WEBHOOK ----------------
-WEBHOOK="https://discord.com/api/webhooks/1518233664771588307/pbbS7bP6GRvczqDjs-fzhjRVuTabzOaohnnffrpjWApjuInrqsFCcHgIx72TPvubH36X"
-
-send_hook() {
-    MSG="$1"
-    curl -s -H "Content-Type: application/json" \
-    -d "{\"content\":\"$MSG\"}" \
-    "$WEBHOOK" >/dev/null 2>&1
-}
-
-send_hook "🟢 Watchdog gestartet"
-
 # ---------------- RETRY DOWNLOAD ----------------
 retry_download() {
     URL="$1"
@@ -34,13 +22,20 @@ retry_download() {
     return 1
 }
 
+# ---------------- START API ----------------
+echo "🚀 Starte API..."
+nohup python /storage/emulated/0/Delta/Workspace/API.py >/dev/null 2>&1 &
+echo "✅ API gestartet"
+
 # ---------------- MAIN LOOP ----------------
 while true; do
 
-    # -------- CONFIG --------
+    echo "📥 Lade Config herunter..."
+
     if ! retry_download \
     "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json" \
     "Config.json"; then
+        echo "❌ Config konnte nicht heruntergeladen werden."
         sleep 180
         continue
     fi
@@ -53,7 +48,7 @@ except:
     sys.exit(1)
 EOF
 
-    [ $? -ne 0 ] && sleep 180 && continue
+    [ $? -ne 0 ] && echo "❌ Ungültige Config." && sleep 180 && continue
 
     # -------- READ CONFIG --------
     LUA_URL=$(python -c "import json;print(json.load(open('Config.json'))['Info']['Main']['Url'])")
@@ -67,9 +62,12 @@ EOF
 
     # -------- LUA UPDATE --------
     if [ "$LUA_VER" != "$LUA_STATE" ] || [ ! -f /storage/emulated/0/Delta/Autoexecute/Main.lua ]; then
+        echo "📦 Aktualisiere Main.lua..."
         if retry_download "$LUA_URL" "/storage/emulated/0/Delta/Autoexecute/Main.lua"; then
             python -c "import json;d=json.load(open('state.json'));d['lua_ver']='$LUA_VER';json.dump(d,open('state.json','w'))"
-            send_hook "📦 LUA updated $LUA_VER"
+            echo "✅ Main.lua auf Version $LUA_VER aktualisiert."
+        else
+            echo "❌ Main.lua konnte nicht heruntergeladen werden."
         fi
     fi
 
@@ -77,25 +75,26 @@ EOF
     UPDATED_API=0
 
     if [ "$PY_VER" != "$PY_STATE" ] || [ ! -f /storage/emulated/0/Delta/Workspace/API.py ]; then
+        echo "📦 Aktualisiere API.py..."
         if retry_download "$PY_URL" "/storage/emulated/0/Delta/Workspace/API.py"; then
             python -c "import json;d=json.load(open('state.json'));d['py_ver']='$PY_VER';json.dump(d,open('state.json','w'))"
-            send_hook "📦 API updated $PY_VER"
             UPDATED_API=1
+            echo "✅ API.py auf Version $PY_VER aktualisiert."
+        else
+            echo "❌ API.py konnte nicht heruntergeladen werden."
         fi
     fi
 
-    # -------- START / RESTART API --------
+    # -------- RESTART API AFTER UPDATE --------
     if [ "$UPDATED_API" -eq 1 ]; then
+        echo "🔄 Starte API neu..."
         pkill -f "API.py" 2>/dev/null
         sleep 1
         nohup python /storage/emulated/0/Delta/Workspace/API.py >/dev/null 2>&1 &
-        send_hook "🔁 API restarted after update"
-    elif ! pgrep -f "API.py" >/dev/null; then
-        nohup python /storage/emulated/0/Delta/Workspace/API.py >/dev/null 2>&1 &
-        send_hook "🚀 API started"
+        echo "✅ API neu gestartet."
     fi
 
-    # -------- LOOP DELAY --------
+    echo "⏳ Warte 180 Sekunden..."
     sleep 180
 
 done
