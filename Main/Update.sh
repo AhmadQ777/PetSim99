@@ -1,5 +1,5 @@
 # ==============================
-# TERMUX WATCHDOG (FIXED START ORDER + SAFE DOWNLOAD FIRST)
+# TERMUX WATCHDOG (NO STATE FILE, CONFIG-BASED VERSION CHECK)
 # ==============================
 
 pkg update -y && pkg upgrade -y
@@ -18,16 +18,10 @@ echo "🚀 WATCHDOG START"
 
 WORKSPACE="/sdcard/Delta/Workspace"
 AUTOEXEC="/sdcard/Delta/Autoexecute"
-STATE_FILE="$WORKSPACE/state.json"
 
-# ---------------- INIT STATE ----------------
-mkdir -p "$WORKSPACE"
+CONFIG_FILE="$WORKSPACE/Config.json"
 
-if [ ! -f "$STATE_FILE" ] || ! python -c "import json;json.load(open('$STATE_FILE'))" 2>/dev/null; then
-    echo '{"lua_ver":"","py_ver":""}' > "$STATE_FILE"
-fi
-
-# ---------------- DOWNLOAD FUNCTION ----------------
+# ---------------- DOWNLOAD ----------------
 retry_download() {
     for i in 1 2 3; do
         curl -s --fail --max-time 10 "$1" -o "$2" && return 0
@@ -36,67 +30,7 @@ retry_download() {
     return 1
 }
 
-# ---------------- LOAD CONFIG ----------------
-CONFIG_FILE="$WORKSPACE/Config.json"
-
-echo "📥 Download Config..."
-
-retry_download \
-"https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json" \
-"$CONFIG_FILE"
-
-# ---------------- PARSE CONFIG ----------------
-read LUA_URL LUA_VER PY_URL PY_VER <<EOF
-$(python - <<PY
-import json
-try:
-    d=json.load(open("$CONFIG_FILE"))
-    print(
-        d["Info"]["Main"]["Url"],
-        d["Info"]["Main"]["Version"],
-        d["Info"]["API"]["Url"],
-        d["Info"]["API"]["Version"]
-    )
-except:
-    print("", "", "", "")
-PY
-)
-EOF
-
-read LUA_STATE PY_STATE <<EOF
-$(python - <<PY
-import json
-try:
-    d=json.load(open("$STATE_FILE"))
-    print(d.get("lua_ver",""), d.get("py_ver",""))
-except:
-    print("", "")
-PY
-)
-EOF
-
-# ---------------- DOWNLOAD FILES FIRST ----------------
-echo "📦 Checking downloads..."
-
-UPDATED_API=0
-
-# LUA
-if [ "$LUA_VER" != "$LUA_STATE" ] || [ ! -f "$AUTOEXEC/Main.lua" ]; then
-    echo "⬇️ Download Main.lua"
-    retry_download "$LUA_URL" "$AUTOEXEC/Main.lua"
-    python -c "import json;d=json.load(open('$STATE_FILE'));d['lua_ver']='$LUA_VER';json.dump(d,open('$STATE_FILE','w'))"
-fi
-
-# API
-if [ "$PY_VER" != "$PY_STATE" ] || [ ! -f "$WORKSPACE/API.py" ]; then
-    echo "⬇️ Download API.py"
-    if retry_download "$PY_URL" "$WORKSPACE/API.py"; then
-        python -c "import json;d=json.load(open('$STATE_FILE'));d['py_ver']='$PY_VER';json.dump(d,open('$STATE_FILE','w'))"
-        UPDATED_API=1
-    fi
-fi
-
-# ---------------- START API ONLY AFTER EXISTS ----------------
+# ---------------- START API ----------------
 start_api() {
     pkill -9 -f "API.py" 2>/dev/null
     sleep 1
@@ -111,7 +45,36 @@ start_api() {
     echo "✅ API running"
 }
 
-# START ON FIRST RUN
+# ---------------- INITIAL DOWNLOAD ----------------
+echo "📥 Download Config..."
+
+retry_download \
+"https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json" \
+"$CONFIG_FILE"
+
+# ---------------- FIRST PARSE ----------------
+read OLD_LUA_VER OLD_PY_VER <<EOF
+$(python - <<PY
+import json
+try:
+    d=json.load(open("$CONFIG_FILE"))
+    print(
+        d["Info"]["Main"]["Version"],
+        d["Info"]["API"]["Version"]
+    )
+except:
+    print("", "")
+PY
+)
+EOF
+
+# ---------------- DOWNLOAD FILES FIRST ----------------
+echo "📦 Initial sync..."
+
+retry_download "$(python -c "import json;print(json.load(open('$CONFIG_FILE'))['Info']['Main']['Url'])")" "$AUTOEXEC/Main.lua"
+retry_download "$(python -c "import json;print(json.load(open('$CONFIG_FILE'))['Info']['API']['Url'])")" "$WORKSPACE/API.py"
+
+# ---------------- START API ----------------
 start_api
 
 # ---------------- LOOP ----------------
@@ -119,20 +82,18 @@ while true; do
 
     echo "🔁 Checking updates..."
 
-    retry_download \
-    "https://raw.githubusercontent.com/AhmadQ777/PetSim99/main/Data/Config.json" \
-    "$CONFIG_FILE"
+    retry_download "$CONFIG_FILE" "$CONFIG_FILE"
 
-    read LUA_URL LUA_VER PY_URL PY_VER <<EOF
+    read NEW_LUA_VER NEW_PY_VER LUA_URL PY_URL <<EOF
 $(python - <<PY
 import json
 try:
     d=json.load(open("$CONFIG_FILE"))
     print(
-        d["Info"]["Main"]["Url"],
         d["Info"]["Main"]["Version"],
-        d["Info"]["API"]["Url"],
-        d["Info"]["API"]["Version"]
+        d["Info"]["API"]["Version"],
+        d["Info"]["Main"]["Url"],
+        d["Info"]["API"]["Url"]
     )
 except:
     print("", "", "", "")
@@ -140,32 +101,20 @@ PY
 )
 EOF
 
-    read LUA_STATE PY_STATE <<EOF
-$(python - <<PY
-import json
-try:
-    d=json.load(open("$STATE_FILE"))
-    print(d.get("lua_ver",""), d.get("py_ver",""))
-except:
-    print("", "")
-PY
-)
-EOF
-
     UPDATED_API=0
 
-    # LUA UPDATE
-    if [ "$LUA_VER" != "$LUA_STATE" ]; then
-        echo "📦 Updating Main.lua"
+    # LUA UPDATE CHECK
+    if [ "$NEW_LUA_VER" != "$OLD_LUA_VER" ]; then
+        echo "📦 Main.lua updated"
         retry_download "$LUA_URL" "$AUTOEXEC/Main.lua"
-        python -c "import json;d=json.load(open('$STATE_FILE'));d['lua_ver']='$LUA_VER';json.dump(d,open('$STATE_FILE','w'))"
+        OLD_LUA_VER="$NEW_LUA_VER"
     fi
 
-    # API UPDATE
-    if [ "$PY_VER" != "$PY_STATE" ]; then
-        echo "📦 Updating API.py"
+    # API UPDATE CHECK
+    if [ "$NEW_PY_VER" != "$OLD_PY_VER" ]; then
+        echo "📦 API.py updated"
         if retry_download "$PY_URL" "$WORKSPACE/API.py"; then
-            python -c "import json;d=json.load(open('$STATE_FILE'));d['py_ver']='$PY_VER';json.dump(d,open('$STATE_FILE','w'))"
+            OLD_PY_VER="$NEW_PY_VER"
             UPDATED_API=1
         fi
     fi
