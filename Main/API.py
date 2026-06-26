@@ -124,7 +124,7 @@ def save(data):
     tmp = OUTPUT_FILE + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, separators=(",", ":"))
-        
+
     os.replace(tmp, OUTPUT_FILE)
 
 
@@ -139,3 +139,7 @@ def main():
             save(data)
     except Exception as e:
         print("Error:", e)
+
+while True:
+    main()
+    time.sleep(180)
