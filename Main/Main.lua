@@ -165,6 +165,7 @@ local function GetPlayerData()
 
     print("[GetPlayerData] Finished")
 
+    task.wait(120)
     Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
 end
 
@@ -511,7 +512,7 @@ local function OnCreate()
                 Pets = {},
                 PlayerState = Const.STATE.GETTING_PLAYER_DATA
             }
-
+            
             GetPlayerData()
             return
         end
