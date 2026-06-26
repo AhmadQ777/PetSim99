@@ -90,12 +90,14 @@ local function Teleport(TeleportToPerform)
         while Player and Player.Parent do
             print("[Teleport] Rehop Attempt:", Attempts + 1)
 
-            pcall(function()
+            local Success, Error = pcall(function()
                 TPS:TeleportAsync(game.PlaceId, {Player})
             end)
 
+            warn("Success : " .. tostring(Success) .. ", Error : " , Error)
+
             Attempts += 1
-            task.wait(math.min(2^Attempts, 30))
+            task.wait(2 ^ math.clamp(Attempts,1,4) )
         end
 
     elseif TeleportToPerform == Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE then
