@@ -86,19 +86,14 @@ local function Teleport(TeleportToPerform)
         print("[Teleport] REHOP_SERVER")
 
         --// Rehop Servers
-        local Attempts = 0
-        while Player and Player.Parent do
-            print("[Teleport] Rehop Attempt:", Attempts + 1)
-
+        repeat
             local Success, Error = pcall(function()
                 TPS:TeleportAsync(game.PlaceId, {Player})
             end)
 
-            warn("Success : " .. tostring(Success) .. ", Error : " , Error)
-
-            Attempts += 1
-            task.wait(2 ^ math.clamp(Attempts,1,4) )
-        end
+            warn("Success : " .. tostring(Success) .. ", Error : ", Error)
+            task.wait(1)
+        until Success
 
     elseif TeleportToPerform == Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE then
         print("[Teleport] TELEPORT_TO_OTHER_PLACE")
