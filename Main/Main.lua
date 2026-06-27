@@ -134,7 +134,7 @@ local function GetPlayerData()
     if not Const.INSTANCE.PLAYER_INVENTORY.Enabled then
         print("[GetPlayerData] Waiting for Inventory")
         Const.INSTANCE.PLAYER_INVENTORY:GetPropertyChangedSignal("Enabled"):Wait()
-        task.wait(Const.WAIT.NORMAL)
+        task.wait(Const.WAIT.LONG)
     end
 
     print("[GetPlayerData] Reading Equipped Pets")
