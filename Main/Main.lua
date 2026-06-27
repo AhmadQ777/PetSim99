@@ -531,6 +531,7 @@ local function OnCreate()
         print("[OnCreate] In Start Lobby")
 
         Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
+        return
     end
 
     if PlayerData.HugeAmount >= Const.GAME.MINIMUM_HUGES_TO_SELL then
