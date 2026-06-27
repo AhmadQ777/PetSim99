@@ -267,22 +267,6 @@ local function ClaimBooth()
 end
 
 
-local function ClaimBooth()
-    repeat
-        local BoothId = Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()[1]:GetAttribute("ID")
-        game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Booths_ClaimBooth"):InvokeServer(tostring(BoothId))
-    until (function()
-        task.wait(Const.WAIT.NORMAL)
-        for _, ClaimedBooth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
-            if ClaimedBooth:GetAttribute("Owner") == UserId then
-                return true
-            end
-        end
-        return false
-    end)()
-end
-
-
 local function CreateListing()
     print("[CreateListing] Started")
 
@@ -310,7 +294,7 @@ local function CreateListing()
 
         workspace:WaitForChild("__THINGS"):WaitForChild("Booths"):WaitForChild("Model"):WaitForChild("Pets"):WaitForChild("Booths_CreateListing"):InvokeServer(unpack(args))
 
-        task.wait(Const.WAIT.SHORT)
+        task.wait(Const.WAIT.NORMAL)
     end
 
     print("[CreateListing] HugeAmount:", PlayerData.HugeAmount)
@@ -371,7 +355,7 @@ local function ScanMarketplace()
 
             while ItemToBuy.Item.Parent and ItemToBuy.Item:FindFirstChild("CircularBar") do
                 print("[ScanMarketplace] Waiting CircularBar:", ItemToBuy.Item.Name)
-                task.wait(0.1)
+                task.wait()
             end
 
             if ItemToBuy.Item.Parent then
