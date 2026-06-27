@@ -19,8 +19,6 @@ echo "🚀 WATCHDOG START"
 AUTOEXEC="/sdcard/Delta/Autoexecute"
 WORKSPACE="/sdcard/Delta/Workspace"
 
-CONFIG_URL="https://raw.githubusercontent.com/AhmadQ777/PetSim99/refs/heads/main/Data/Config.json"
-
 retry_download() {
     for i in 1 2 3; do
         curl -s --fail --max-time 10 "$1" -o "$2" && return 0
@@ -42,17 +40,12 @@ start_api() {
     nohup python "$WORKSPACE/API.py" > "$WORKSPACE/log.txt" 2>&1 &
 }
 
-# ---------------- INITIAL ----------------
-echo "📥 loading config..."
-
-read OLD_LUA OLD_PY LUA_URL PY_URL <<EOF
-$(python - <<PY
-import requests, json
-
+fetch_config() {
+    python - <<PY
+import requests
 data = requests.get(
-    "https://raw.githubusercontent.com/AhmadQ777/PetSim99/refs/heads/main/Data/Config.json?nocache=init"
+    "https://raw.githubusercontent.com/AhmadQ777/PetSim99/refs/heads/main/Data/Config.json?nocache=$(date +%s)"
 ).json()
-
 print(
     str(data["Info"]["Main"]["Version"]).strip(),
     str(data["Info"]["API"]["Version"]).strip(),
@@ -60,8 +53,12 @@ print(
     data["Info"]["API"]["Url"]
 )
 PY
-)
-EOF
+}
+
+# ---------------- INITIAL ----------------
+echo "📥 loading config..."
+
+read OLD_LUA OLD_PY LUA_URL PY_URL < <(fetch_config)
 
 echo "📦 initial download"
 
@@ -75,23 +72,7 @@ while true; do
 
     echo "🔁 CHECK CONFIG"
 
-    read NEW_LUA NEW_PY LUA_URL PY_URL <<EOF
-$(python - <<PY
-import requests
-
-data = requests.get(
-    "https://raw.githubusercontent.com/AhmadQ777/PetSim99/refs/heads/main/Data/Config.json?nocache=loop"
-).json()
-
-print(
-    str(data["Info"]["Main"]["Version"]).strip(),
-    str(data["Info"]["API"]["Version"]).strip(),
-    data["Info"]["Main"]["Url"],
-    data["Info"]["API"]["Url"]
-)
-PY
-)
-EOF
+    read NEW_LUA NEW_PY LUA_URL PY_URL < <(fetch_config)
 
     UPDATED=0
 
