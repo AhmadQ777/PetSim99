@@ -5,7 +5,7 @@
             "Url"       : "https://raw.githubusercontent.com/AhmadQ777/PetSim99/refs/heads/main/Main/Main.lua"
         },
         "API"   : {
-            "Version"   : "1.0.0.1",
+            "Version"   : "1.0.0.0",
             "Url"       : "https://raw.githubusercontent.com/AhmadQ777/PetSim99/refs/heads/main/Main/API.py"
         }
     }
