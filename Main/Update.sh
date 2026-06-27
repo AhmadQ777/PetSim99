@@ -42,16 +42,26 @@ start_api() {
 
 fetch_config() {
     python - <<PY
-import requests
-data = requests.get(
-    "https://raw.githubusercontent.com/AhmadQ777/PetSim99/refs/heads/main/Data/Config.json?nocache=$(date +%s)"
-).json()
-print(
-    str(data["Info"]["Main"]["Version"]).strip(),
-    str(data["Info"]["API"]["Version"]).strip(),
-    data["Info"]["Main"]["Url"],
-    data["Info"]["API"]["Url"]
-)
+import requests, sys, base64, json
+
+try:
+    r = requests.get(
+        "https://api.github.com/repos/AhmadQ777/PetSim99/contents/Data/Config.json",
+        headers={"Cache-Control": "no-cache", "Pragma": "no-cache"},
+        timeout=10
+    ).json()
+
+    data = json.loads(base64.b64decode(r["content"]).decode())
+
+    print(
+        str(data["Info"]["Main"]["Version"]).strip(),
+        str(data["Info"]["API"]["Version"]).strip(),
+        data["Info"]["Main"]["Url"],
+        data["Info"]["API"]["Url"]
+    )
+except Exception as e:
+    print("ERROR:", e, file=sys.stderr)
+    sys.exit(1)
 PY
 }
 
@@ -72,7 +82,13 @@ while true; do
 
     echo "🔁 CHECK CONFIG"
 
-    read NEW_LUA NEW_PY LUA_URL PY_URL < <(fetch_config)
+    CONFIG=$(fetch_config 2>&1)
+    if echo "$CONFIG" | grep -q "^ERROR"; then
+        echo "⚠️ CONFIG FETCH FAILED: $CONFIG"
+        sleep 30
+        continue
+    fi
+    read NEW_LUA NEW_PY LUA_URL PY_URL <<< "$CONFIG"
 
     UPDATED=0
 
