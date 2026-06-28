@@ -229,11 +229,17 @@ local function ClaimBooth()
     print("[ClaimBooth] Started")
 
     repeat
-        local BoothId = game.Workspace:WaitForChild("TradingPlaza"):WaitForChild("BoothSpawns"):GetChildren()[1]:GetAttribute("ID")
+        local BoothId
+        repeat
+            BoothId = game.Workspace:WaitForChild("TradingPlaza"):WaitForChild("BoothSpawns"):GetChildren()[1]:GetAttribute("ID")
+            if BoothId == nil then
+                task.wait(Const.WAIT.SHORT)
+            end
+        until BoothId ~= nil
 
         print("[ClaimBooth] Trying Booth:", BoothId)
 
-        pcall(game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Booths_ClaimBooth"):InvokeServer(tostring(BoothId)))
+        game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Booths_ClaimBooth"):InvokeServer(tostring(BoothId))
 
     until (function()
         task.wait(Const.WAIT.NORMAL)
