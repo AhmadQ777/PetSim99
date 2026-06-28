@@ -21,7 +21,6 @@ local Const = {
         PLAYER_INVENTORY = Player:WaitForChild("PlayerGui"):WaitForChild("Inventory"),
         EQUIPPED_PETS = Player:WaitForChild("PlayerGui"):WaitForChild("Inventory"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Pets"):WaitForChild("EquippedPets"),
         CLAIMED_BOOTHS = game.Workspace:WaitForChild("__THINGS"):WaitForChild("Booths"),
-        CHECK_UNCLAIMED_BOOTHS = TradingPlaza and TradingPlaza:FindFirstChild("BoothSpawns"),
     },
     DATA = {
         PATH = {
