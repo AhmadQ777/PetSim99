@@ -235,10 +235,10 @@ local function ClaimBooth()
 
         print("[ClaimBooth] Trying Booth:", BoothId)
 
-        game:GetService("ReplicatedStorage")
+        pcall(game:GetService("ReplicatedStorage")
             :WaitForChild("Network")
             :WaitForChild("Booths_ClaimBooth")
-            :InvokeServer(tostring(BoothId))
+            :InvokeServer(tostring(BoothId)))
 
     until (function()
         task.wait(Const.WAIT.NORMAL)
