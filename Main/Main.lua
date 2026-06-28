@@ -291,7 +291,7 @@ local function CreateListing()
     print("[CreateListing] HugeAmount:", PlayerData.HugeAmount)
     print("[CreateListing] Listed Children:", #ListedItems:GetChildren())
 
-    if PlayerData.HugeAmount ~= #ListedItems:GetChildren() then
+    if PlayerData.HugeAmount ~= #ListedItems:GetChildren() - 2 then
         print("[CreateListing] Amount Mismatch -> GetPlayerData()")
         GetPlayerData()
     end
