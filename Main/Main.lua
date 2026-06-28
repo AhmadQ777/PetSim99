@@ -1,7 +1,5 @@
 --// Main
 --// Services
-local RS = game:GetService("RunService")
-local TPS = game:GetService("TeleportService")
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 
@@ -10,9 +8,6 @@ local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local HRT = Character:WaitForChild("HumanoidRootPart")
 local UserId = Player.UserId
-
---// Initialize Varaibles to check
-local TradingPlaza = game.Workspace:FindFirstChild("TradingPlaza")
 
 --// Decalaring Const Variables
 local Const = {
@@ -444,18 +439,21 @@ end
 local function OnCreate()
     --// Changelog 
     print("[Changelog] Started")
-    local utc = os.date("!*t")
-
-    print("[Changelog] Checking if is 15 minutes before Update")
+    local BASE_TIME = 1783180800
+    local WEEK_TIME = 604800
+    local UpdateTime = 0
+    local now = os.time()
+    
+    UpdateTime = math.ceil((now - BASE_TIME) / WEEK_TIME) * WEEK_TIME + BASE_TIME
+    
+    print("[Changelog] Checking if Update is Soon")
     local IsUpdateSoon =
-        utc.wday == 7 and
-        utc.hour == 15 and
-        utc.min >= 15
+        now >= (UpdateTime - 900) and
+        now < UpdateTime
 
     if IsUpdateSoon and Player.PlayerGui:WaitForChild("Changelog").Enabled then
         Player.PlayerGui:WaitForChild("Changelog"):WaitForChild("Frame").Position = UDim2.new(0.37,0,0.66,0)
     end
-    print("[Changelog] Is Enabled : " , Player.PlayerGui:WaitForChild("Changelog").Enabled)
     print("[Changelog] Ended")
 
     print("[OnCreate] Started")
