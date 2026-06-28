@@ -85,6 +85,7 @@ local function Teleport(TeleportToPerform)
         end
 
     elseif TeleportToPerform == Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE then
+        task.wait(10)
         print("[Teleport] TELEPORT_TO_OTHER_PLACE")
 
         --// Telport to other place
