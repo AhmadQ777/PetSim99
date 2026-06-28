@@ -283,7 +283,7 @@ local function CreateListing()
 
         print("[CreateListing] Price:", (Data[Value] or 35000000) + Const.GAME.HUGE_SELLING_BASE_ADDED_AMOUNT)
 
-        workspace:WaitForChild("__THINGS"):WaitForChild("Booths"):WaitForChild("Model"):WaitForChild("Pets"):WaitForChild("Booths_CreateListing"):InvokeServer(unpack(args))
+        game.Workspace:WaitForChild("__THINGS"):WaitForChild("Booths"):WaitForChild("Model"):WaitForChild("Pets"):WaitForChild("Booths_CreateListing"):InvokeServer(unpack(args))
 
         task.wait(Const.WAIT.NORMAL)
     end
