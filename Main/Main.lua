@@ -84,16 +84,11 @@ local function Teleport(TeleportToPerform)
 
     if TeleportToPerform == Const.TELEPORT.ACTION.REHOP_SERVER then
         print("[Teleport] REHOP_SERVER")
+        if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
+            
+        else    
 
-        --// Rehop Servers
-        repeat
-            local Success, Error = pcall(function()
-                TPS:TeleportAsync(game.PlaceId, {Player})
-            end)
-
-            warn("Success : " .. tostring(Success) .. ", Error : ", Error)
-            task.wait(1)
-        until Success
+        end
 
     elseif TeleportToPerform == Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE then
         print("[Teleport] TELEPORT_TO_OTHER_PLACE")
@@ -447,6 +442,22 @@ end
 
 --// Starting Code
 local function OnCreate()
+    --// Changelog 
+    print("[Changelog] Started")
+    local utc = os.date("!*t")
+
+    print("[Changelog] Checking if is 15 minutes before Update")
+    local IsUpdateSoon =
+        utc.wday == 7 and
+        utc.hour == 15 and
+        utc.min >= 15
+
+    if IsUpdateSoon and Player.PlayerGui:WaitForChild("Changelog").Enabled then
+        Player.PlayerGui:WaitForChild("Changelog"):WaitForChild("Frame").Position = UDim2.new(0.37,0,0.66,0)
+    end
+    print("[Changelog] Is Enabled : " , Player.PlayerGui:WaitForChild("Changelog").Enabled)
+    print("[Changelog] Ended")
+
     print("[OnCreate] Started")
     print("[OnCreate] PlaceId:", game.PlaceId)
 
