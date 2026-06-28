@@ -451,6 +451,7 @@ local function OnCreate()
         now >= (UpdateTime - 900) and
         now < UpdateTime
 
+    task.wait(2)
     if IsUpdateSoon and Player.PlayerGui:WaitForChild("Changelog").Enabled then
         Player.PlayerGui:WaitForChild("Changelog"):WaitForChild("Frame").Position = UDim2.new(0.37,0,0.66,0)
     end
