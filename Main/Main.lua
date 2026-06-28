@@ -237,7 +237,7 @@ local function ClaimBooth()
         pcall(game:GetService("ReplicatedStorage")
             :WaitForChild("Network")
             :WaitForChild("Booths_ClaimBooth")
-            :InvokeServer(tostring(BoothId)))
+            :InvokeServer(BoothId))
 
     until (function()
         task.wait(Const.WAIT.NORMAL)
