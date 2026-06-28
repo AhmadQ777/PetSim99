@@ -437,6 +437,9 @@ end
 
 --// Starting Code
 local function OnCreate()
+    print("[OnCreate] Started")
+    print("[OnCreate] PlaceId:", game.PlaceId)
+    
     --// Remove Changelog
     print("[Changelog] Started")
     local BASE_TIME = 1783180800
@@ -451,19 +454,23 @@ local function OnCreate()
         now >= (UpdateTime - 900) and
         now < UpdateTime
 
-    task.wait(2)
-    if IsUpdateSoon and Player.PlayerGui:WaitForChild("Changelog").Enabled then
-        Player.PlayerGui:WaitForChild("Changelog"):WaitForChild("Frame").Position = UDim2.new(0.37,0,0.66,0)
+    local Changelog = Player.PlayerGui:WaitForChild("Changelog")
+    if IsUpdateSoon then
+        Changelog:GetPropertyChangedSignal("Enabled"):Once(function()
+            if Changelog.Enabled then
+                Changelog:WaitForChild("Frame").Position = UDim2.new(0.37,0,0.66,0)
+            end
+        end)
     end
     print("[Changelog] Ended")
 
-    print("[OnCreate] Started")
-    print("[OnCreate] PlaceId:", game.PlaceId)
-
     --// Remove Loginstreak
-    if Player.PlayerGui:WaitForChild("LoginStreak").Enabled then
-        Player.PlayerGui:WaitForChild("LoginStreak"):WaitForChild("Frame").Position = UDim2.new(0.5,0,0.8,0)
-    end
+    local LoginStreak = Player.PlayerGui:WaitForChild("LoginStreak")
+    LoginStreak:GetPropertyChangedSignal("Enabled"):Once(function()
+        if LoginStreak.Enabled then
+            LoginStreak:WaitForChild("Frame").Position = UDim2.new(0.5,0,0.8,0)
+        end
+    end)
 
     --// Get Data
     local Success, Result = pcall(readfile, Const.DATA.PATH.PETS_DATA)
