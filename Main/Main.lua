@@ -75,7 +75,6 @@ local PlayerData
 --// Intialize Functions
 local function Teleport(TeleportToPerform)
     print("[Teleport] Called:", TeleportToPerform)
-    task.wait(120)
 
     if TeleportToPerform == Const.TELEPORT.ACTION.REHOP_SERVER then
         print("[Teleport] REHOP_SERVER")
