@@ -437,7 +437,7 @@ end
 
 --// Starting Code
 local function OnCreate()
-    --// Changelog 
+    --// Remove Changelog
     print("[Changelog] Started")
     local BASE_TIME = 1783180800
     local WEEK_TIME = 604800
@@ -458,6 +458,11 @@ local function OnCreate()
 
     print("[OnCreate] Started")
     print("[OnCreate] PlaceId:", game.PlaceId)
+
+    --// Remove Loginstreak
+    if Player.PlayerGui:WaitForChild("LoginStreak").Enabled then
+        Player.PlayerGui:WaitForChild("LoginStreak"):WaitForChild("Frame").Position = UDim2.new(0.5,0,0.8,0)
+    end
 
     --// Get Data
     local Success, Result = pcall(readfile, Const.DATA.PATH.PETS_DATA)
