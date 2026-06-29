@@ -281,14 +281,6 @@ local function ScanMarketplace()
 end
 
 
-Player.CharacterAdded:Connect(function(NewCharacter)
-    print("[CharacterAdded]")
-
-    Character = NewCharacter
-    HRT = Character:WaitForChild("HumanoidRootPart")
-end)
-
-
 --// Process
 function Process()
     print("[Process] Started")
