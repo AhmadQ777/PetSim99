@@ -11,13 +11,6 @@ local UserId = Player.UserId
 
 --// Decalaring Const Variables
 local Const = {
-    DATA = {
-        PATH = {
-            PLAYER_INV = "/storage/emulated/0/Delta/Workspace/PLAYER_INV.json",
-            PETS_DATA = "/storage/emulated/0/Delta/Workspace/PETS_DATA.json"
-        },
-        MAX_OLDEST_PETS_DATA = 600
-    },
     GAME = {
         HUGE_SELLING_BASE_ADDED_AMOUNT = 1190000,
         MINIMUM_BUYING_HUGE_UNDER_PRICE = 500000,
@@ -288,19 +281,6 @@ local function ScanMarketplace()
 end
 
 
---// Initialize Events
-Players.PlayerRemoving:Connect(function(LeavingPlayer)
-    print("[PlayerRemoving]", LeavingPlayer.Name)
-
-    if LeavingPlayer.UserId == UserId then
-        print("[PlayerRemoving] Saving PlayerData")
-
-        pcall(function()
-            writefile(Const.DATA.PATH.PLAYER_INV, HttpService:JSONEncode(PlayerData))
-        end)
-    end
-end)
-
 Player.CharacterAdded:Connect(function(NewCharacter)
     print("[CharacterAdded]")
 
@@ -376,12 +356,12 @@ local function OnCreate()
     --// Get Data
     print("[GetData] Trying to load Data")
     repeat
-        local Success, Result = pcall(readfile, Const.DATA.PATH.PETS_DATA)
-        if not Success or Result == nil or os.time() - Data.LastSuccessfulAPIRequest >= Const.DATA.MAX_OLDEST_PETS_DATA then
+        local Success, Result = pcall(readfile, "/storage/emulated/0/Delta/Workspace/PETS_DATA.json")
+        if not Success or Result == nil or os.time() - Data.LastSuccessfulAPIRequest >= 600 then
             print("[GetData] Failed to load Data or Data is just to old")
             task.wait(Const.WAIT.LONG)
         end
-    until Success and Result ~= nil and not (os.time() - Data.LastSuccessfulAPIRequest >= Const.DATA.MAX_OLDEST_PETS_DATA)
+    until Success and Result ~= nil and not (os.time() - Data.LastSuccessfulAPIRequest >= 600)
     Data = HttpService:JSONDecode(Result)
     print("[GetData] PETS_DATA Loaded")
 
