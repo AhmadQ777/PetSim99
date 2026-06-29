@@ -70,11 +70,10 @@ local HugeAmount = 0
 --// Intialize Functions
 local function Teleport(TeleportToPerform)
     print("[Teleport] Called:", TeleportToPerform)
-
+    
     if TeleportToPerform == Const.TELEPORT.ACTION.REHOP_SERVER then
         print("[Teleport] REHOP_SERVER")
         if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
-            
         else    
             HRT:PivotTo(game.Workspace:WaitForChild("TradingPlaza"):WaitForChild("INTERACT"):WaitForChild("Machines"):WaitForChild("TradingTerminal_Machine"):WaitForChild("PadDecor").CFrame)
         end
@@ -91,8 +90,8 @@ local function Teleport(TeleportToPerform)
             repeat
                 HRT:PivotTo(Const.TELEPORT.POSITION.HRT)
                 task.wait(Const.WAIT.SHORT)
+                firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
             until (HRT.Position - Const.TELEPORT.POSITION.HRT).Magnitude < 5
-            
         end
     end
 end
