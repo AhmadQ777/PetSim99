@@ -186,9 +186,9 @@ local function CreateListing()
     while not BoothPrompt.Enabled do
         BoothPrompt:GetPropertyChangedSignal("Enabled"):Wait()
     end
-    task.wait(Const.WAIT.SHORT)
     for _ = 1,HugeAmount do
         print("[CreateListing] 1")
+        task.wait(Const.WAIT.SHORT)
         firesignal(PostButton.Activated)
         local Pets = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filters"):WaitForChild("Pet"):WaitForChild("Holder")
         while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 do
@@ -199,7 +199,6 @@ local function CreateListing()
             if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
                 local Image = Pet.Icon.Image
                 print("[CreateListing] 3")
-                task.wait(Const.WAIT.SHORT)
                 firesignal(Pet.Activated)
                 local ConfirmButton = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm")
                 while not ConfirmButton.Visible do
@@ -221,6 +220,7 @@ local function CreateListing()
                 end
                 task.wait(Const.WAIT.NORMAL)
                 print("[CreateListing] 7")
+                break
             end
         end
     end
