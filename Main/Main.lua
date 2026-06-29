@@ -188,7 +188,7 @@ local function CreateListing()
     for _ = 1,HugeAmount do
         print("[CreateListing] 1")
         firesignal(PostButton.Activated)
-        local Pets = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filter"):WaitForChild("Pet"):WaitForChild("Holder")
+        local Pets = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filters"):WaitForChild("Pet"):WaitForChild("Holder")
         while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 do
             task.wait()
         end
