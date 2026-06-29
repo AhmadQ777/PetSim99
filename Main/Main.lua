@@ -176,7 +176,18 @@ local function CreateListing()
     local SubmitButton = TextInput:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("CURRENCY"):WaitForChild("Ok")
     local Message = Player.PlayerGui:WaitForChild("Message")
     local AcceptButton = Message:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("Yes")
-    BoothPrompt.Enabled = true
+    local OwnedBooth 
+    for _, ClaimedBooth in ipairs(game.Workspace:WaitForChild("__THINGS"):WaitForChild("Booths"):GetChildren()) do
+        if ClaimedBooth:GetAttribute("Owner") == UserId then
+            OwnedBooth = ClaimedBooth
+        end
+    end
+    HRT.Position = OwnedBooth.Position + Vector3.new(0,10,0)
+    task.wait(Const.WAIT.SHORT)
+    firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
+    while not BoothPrompt.Enabled do
+        BoothPrompt:GetPropertyChangedSignal("Enabled"):Wait()
+    end
     for _ in HugeAmount do
         firesignal(PostButton.Activated)
         local Pets = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filter"):WaitForChild("Pet"):WaitForChild("Holder")
