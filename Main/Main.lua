@@ -181,14 +181,13 @@ local function CreateListing()
     local AcceptButton = Message:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("Yes")
     print("[CreateListing] Opening Booth Menu")
     HRT.Position = OwnedBooth.Interact.Position
-    task.wait(Const.WAIT.SHORT)
+    task.wait(Const.WAIT.NORMAL)
     firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
     while not BoothPrompt.Enabled do
         BoothPrompt:GetPropertyChangedSignal("Enabled"):Wait()
     end
     for _ = 1,HugeAmount do
         print("[CreateListing] 1")
-        task.wait(Const.WAIT.SHORT)
         firesignal(PostButton.Activated)
         local Pets = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filters"):WaitForChild("Pet"):WaitForChild("Holder")
         while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 do
@@ -197,7 +196,6 @@ local function CreateListing()
         print("[CreateListing] 2")
         for _, Pet in ipairs(Pets:GetChildren()) do
             if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
-                task.wait(Const.WAIT.NORMAL)
                 local Image = Pet.Icon.Image
                 print("[CreateListing] 3")
                 firesignal(Pet.Activated)
@@ -205,21 +203,18 @@ local function CreateListing()
                 while not ConfirmButton.Visible do
                     ConfirmButton:GetPropertyChangedSignal("Visible"):Wait()
                 end
-                task.wait(Const.WAIT.SHORT)
                 print("[CreateListing] 4")
                 firesignal(Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Confirm").Activated)
                 while not TextInput.Enabled do
                     ConfirmButton:GetPropertyChangedSignal("Visible"):Wait()
                 end
-                task.wait(Const.WAIT.SHORT)
                 print("[CreateListing] 5")
                 PriceInput.Text = tostring((Data[Image] or 35000000) + Const.GAME.HUGE_SELLING_BASE_ADDED_AMOUNT)
-                print("[CreateListing] 6")
                 firesignal(SubmitButton.Activated)
                 while not Message.Enabled do
                     Message:GetPropertyChangedSignal("Enabled"):Wait()
                 end
-                print("[CreateListing] 7")
+                print("[CreateListing] 6")
                 break
             end
         end
@@ -393,6 +388,8 @@ local function OnCreate()
             HugeAmount += 1
         end
     end
+    task.wait(Const.WAIT.NORMAL)
+    firesignal(Player.PlayerGui:WaitForChild("Inventory"):WaitForChild("Frame"):WaitForChild("Close").Activated)
     Player.PlayerGui:WaitForChild("Inventory").Enabled = false
     task.wait()
     print("[HugeAmount] " , HugeAmount)
