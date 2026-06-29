@@ -407,6 +407,7 @@ local function OnCreate()
     else
         print("[OnCreate] Execute SELLING")
         if IsServerViable() then
+            task.wait(Const.WAIT.SHORT)
             print("[OnCreate] Server Viable")
             ClaimBooth()
             CreateListing()
