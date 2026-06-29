@@ -199,54 +199,7 @@ local function CreateListing()
     local SubmitButton = TextInput:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("CURRENCY"):WaitForChild("Ok")
     local Message = Player.PlayerGui:WaitForChild("Message")
     local AcceptButton = Message:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("Yes")
-    print("[CreateListing] Opening Booth Menu")
-    HRT.Position = OwnedBooth.Interact.Position
-    FireUntilProperty(
-        Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated,
-        BoothPrompt,
-        "Enabled",
-        true
-    )
-    for _ = 1,HugeAmount do
-        print("[CreateListing] 1")
-        task.wait(Const.WAIT.NORMAL)
-        firesignal(PostButton.Activated)
-        local Pets = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filters"):WaitForChild("Pet"):WaitForChild("Holder")
-        while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 do
-            task.wait()
-        end
-        for _, Pet in ipairs(Pets:GetChildren()) do
-            if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
-                local Image = Pet.Icon.Image
-                print("[CreateListing] 2")
-                local ConfirmButton = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm")
-                FireUntilProperty(
-                    Pet.Activated,
-                    ConfirmButton,
-                    "Visible",
-                    true
-                )
-                print("[CreateListing] 3")
-                FireUntilProperty(
-                    ConfirmButton.Activated,
-                    TextInput,
-                    "Enabled",
-                    true
-                )
-                print("[CreateListing] 4")
-                PriceInput.Text = tostring((Data[Image] or 35000000) + Const.GAME.HUGE_SELLING_BASE_ADDED_AMOUNT)
-                FireUntilProperty(
-                    SubmitButton.Activated,
-                    Message,
-                    "Enabled",
-                    true
-                )
-                task.wait(Const.WAIT.SHORT)
-                firesignal(AcceptButton.Activated)
-                break
-            end
-        end
-    end
+    
     print("[CreateListing] HugeAmount:", HugeAmount)
     print("[CreateListing] Listed Children:", #ListedItems:GetChildren() - 2)
     if HugeAmount ~= #ListedItems:GetChildren() - 2 then
