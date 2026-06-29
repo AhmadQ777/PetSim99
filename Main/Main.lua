@@ -182,7 +182,7 @@ local function CreateListing()
             OwnedBooth = ClaimedBooth
         end
     end
-    HRT.Position = OwnedBooth.Position + Vector3.new(0,10,0)
+    HRT.Position = OwnedBooth.Interact.Position
     task.wait(Const.WAIT.SHORT)
     firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
     while not BoothPrompt.Enabled do
