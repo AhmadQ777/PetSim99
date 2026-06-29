@@ -186,6 +186,7 @@ local function CreateListing()
     task.wait(Const.WAIT.SHORT)
     firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
     while not BoothPrompt.Enabled do
+        firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
         BoothPrompt:GetPropertyChangedSignal("Enabled"):Wait()
     end
     for _ = 1,HugeAmount do
@@ -206,7 +207,7 @@ local function CreateListing()
                 while not TextInput.Enabled do
                     ConfirmButton:GetPropertyChangedSignal("Visible"):Wait()
                 end
-                PriceInput = (Data[Image] or 35000000) + Const.GAME.HUGE_SELLING_BASE_ADDED_AMOUNT
+                PriceInput.Text = (Data[Image] or 35000000) + Const.GAME.HUGE_SELLING_BASE_ADDED_AMOUNT
                 task.wait()
                 firesignal(SubmitButton.Activated)
                 while not Message.Enabled do
