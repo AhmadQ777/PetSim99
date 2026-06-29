@@ -35,25 +35,20 @@ local Const = {
     },
     TELEPORT = {
         INSTANCE = {
-            INVENTORY_BUTTON = Player:WaitForChild("PlayerGui"):WaitForChild("Main"):WaitForChild("BottomButtons"):WaitForChild("BUTTONS"):WaitForChild("Inventory"),
             MESSAGE_GUI = Player:WaitForChild("PlayerGui"):WaitForChild("Message"),
-            CAMERA = game.Workspace:WaitForChild("Camera")
         },
         POSITION = {
             HRT = CFrame.new(-918.189453, 284.012909, -2345.07007, 0.837983489, -1.24378534e-08, -0.545695603, 2.95825231e-08, 1, 2.26349854e-08, 0.545695603, -3.51107978e-08, 0.837983489),
-            CAMERA = CFrame.new(-918.535828, 280.984528, -2344.35449, 0.900078893, -0.429107338, -0.0756634474, 0, 0.173648745, -0.98480773, 0.43572703, 0.886404634, 0.156297565),
-            MESSAGE_GUI = UDim2.new(0.59, 0, 0.68, 0)
         },
         ACTION = {
+            REJOIN_SERVER = "RejoinServer",
             REHOP_SERVER = "RehopServer",
             TELEPORT_TO_OTHER_PLACE = "TeleportToOtherPlace"
         },
     },
     STATE = {
-        GETTING_PLAYER_DATA = "GettingPlayerData",
         BUYING = "Buying",
         SELLING = "Selling",
-        IDLE = "Idle"
     },
     WAIT = {
         SHORT = 0.5,
@@ -69,7 +64,7 @@ end
 
 --// Intialize Variables, Functions, Events
 local Data
-local PlayerData
+local HugeAmount = 0
 
 
 --// Intialize Functions
@@ -81,154 +76,82 @@ local function Teleport(TeleportToPerform)
         if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
             
         else    
-
+            HRT:PivotTo(game.Workspace:WaitForChild("TradingPlaza"):WaitForChild("INTERACT"):WaitForChild("Machines"):WaitForChild("TradingTerminal_Machine"):WaitForChild("PadDecor").CFrame)
         end
 
     elseif TeleportToPerform == Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE then
-        task.wait(10)
+        task.wait(Const.WAIT.NORMAL)
         print("[Teleport] TELEPORT_TO_OTHER_PLACE")
-
         --// Telport to other place
         if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
             print("[Teleport] START_LOBBY_PLACE_ID")
             HRT.Position = Const.GAME.TRADING_PLAZA_ENTER_PORTAL_POSITION
         else
             print("[Teleport] TRADING_PLAZA_PLACE_ID")
-
-            HRT:PivotTo(Const.TELEPORT.POSITION.HRT)
-            Const.TELEPORT.INSTANCE.CAMERA.CFrame = Const.TELEPORT.POSITION.CAMERA
-            Const.TELEPORT.INSTANCE.MESSAGE_GUI.Position = Const.TELEPORT.POSITION.MESSAGE_GUI
-            Const.TELEPORT.INSTANCE.INVENTORY_BUTTON:Destroy()
-
-            for _, GUI in pairs(Player.PlayerGui:GetChildren()) do
-                if GUI.ClassName == "ScreenGui" then
-                    GUI.Enabled = false
-                end
-            end
+            repeat
+                HRT:PivotTo(Const.TELEPORT.POSITION.HRT)
+                task.wait(Const.WAIT.SHORT)
+            until (HRT.Position - Const.TELEPORT.POSITION.HRT).Magnitude < 5
+            
         end
     end
-end
-
-
-local function GetPlayerData()
-    print("[GetPlayerData] Started")
-
-    if game.PlaceId == Const.GAME.TRADING_PLAZA_PLACE_ID then
-        print("[GetPlayerData] In Trading Plaza -> Teleport")
-
-        Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
-        return
-    end
-
-    if not Const.INSTANCE.PLAYER_INVENTORY.Enabled then
-        print("[GetPlayerData] Waiting for Inventory")
-        Const.INSTANCE.PLAYER_INVENTORY:GetPropertyChangedSignal("Enabled"):Wait()
-        task.wait(Const.WAIT.LONG)
-    end
-
-    print("[GetPlayerData] Reading Equipped Pets")
-
-    for _, Item in ipairs(Const.INSTANCE.EQUIPPED_PETS:GetChildren()) do
-        if Item.ClassName == "TextButton" then
-            if Item:WaitForChild("Strength").ContentText == "???" then
-                print(
-                    "[GetPlayerData] Huge Found:",
-                    Item:GetAttribute("PetUID"),
-                    Item:WaitForChild("Icon").Image
-                )
-
-                PlayerData.Pets[tostring(Item:GetAttribute("PetUID"))] =
-                    Item:WaitForChild("Icon").Image
-
-                PlayerData.HugeAmount += 1
-            end
-        end
-    end
-
-    print("[GetPlayerData] HugeAmount:", PlayerData.HugeAmount)
-
-    PlayerData.PlayerState = Const.STATE.IDLE
-
-    print("[GetPlayerData] Finished")
-
-    Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
 end
 
 
 local function ConvertNumber(Text)
     print("[ConvertNumber] Input:", Text)
-
     Text = tostring(Text):upper()
-
     local Multipliers = {
         K = 1e3,
         M = 1e6,
         B = 1e9,
         T = 1e12,
     }
-
     local Number, Suffix = Text:match("([%d%.]+)(%a?)")
     Number = tonumber(Number)
-
     local Multiplier = Multipliers[Suffix] or 1
     local Result = Number * Multiplier
-
     print("[ConvertNumber] Output:", Result)
-
     return Result
 end
 
 
 local function IsServerViable()
     local PlayerCount = #Players:GetChildren()
-
-    print(
-        "[IsServerViable] Players:",
-        PlayerCount,
-        "Required:",
-        Const.GAME.MINIMUM_PLAYERS
-    )
-
+    print("[IsServerViable] Players:", PlayerCount, "Required:", Const.GAME.MINIMUM_PLAYERS)
     return PlayerCount >= Const.GAME.MINIMUM_PLAYERS
 end
 
 
 local function BuyItem(UserId, ItemId)
     print("[BuyItem] UserId:", UserId, "ItemId:", ItemId)
-
-    game:GetService("ReplicatedStorage")
-        :WaitForChild("Network")
-        :WaitForChild("Booths_RequestPurchase")
-        :InvokeServer({
-            UserId,
-            {
-                [ItemId] = 1
-            },
-            {
-                Caller = {
-                    LineNumber = 527,
-                    ScriptClass = "ModuleScript",
-                    Variadic = false,
-                    Traceback = "ReplicatedStorage.Library.Client.BoothCmds:527 function PromptPurchase2\nReplicatedStorage.Library.Client.BoothCmds:654 function promptOtherPlayerBooth2\nReplicatedStorage.Library.Client.BoothCmds:157",
-                    ScriptPath = "ReplicatedStorage.Library.Client.BoothCmds",
-                    FunctionName = "PromptPurchase2",
-                    Handle = "function: 0xf91ad081f307b7ed",
-                    ScriptType = "Instance",
-                    ParameterCount = 2,
-                    SourceIdentifier = "ReplicatedStorage.Library.Client.BoothCmds"
-                }
+    game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Booths_RequestPurchase"):InvokeServer({
+        UserId,
+        {
+            [ItemId] = 1
+        },
+        {
+            Caller = {
+                LineNumber = 527,
+                ScriptClass = "ModuleScript",
+                Variadic = false,
+                Traceback = "ReplicatedStorage.Library.Client.BoothCmds:527 function PromptPurchase2\nReplicatedStorage.Library.Client.BoothCmds:654 function promptOtherPlayerBooth2\nReplicatedStorage.Library.Client.BoothCmds:157",
+                ScriptPath = "ReplicatedStorage.Library.Client.BoothCmds",
+                FunctionName = "PromptPurchase2",
+                Handle = "function: 0xf91ad081f307b7ed",
+                ScriptType = "Instance",
+                ParameterCount = 2,
+                SourceIdentifier = "ReplicatedStorage.Library.Client.BoothCmds"
             }
-        })
-
+        }
+    })
     print("[BuyItem] Request Sent")
-
     task.wait(Const.WAIT.SHORT)
 end
 
 
 local function ClaimBooth()
     print("[ClaimBooth] Started")
-
     repeat
         local BoothId
         repeat
@@ -237,21 +160,16 @@ local function ClaimBooth()
                 task.wait(Const.WAIT.SHORT)
             end
         until BoothId ~= nil
-
         print("[ClaimBooth] Trying Booth:", BoothId)
-
         game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Booths_ClaimBooth"):InvokeServer(tostring(BoothId))
-
     until (function()
         task.wait(Const.WAIT.NORMAL)
-
         for _, ClaimedBooth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
             if ClaimedBooth:GetAttribute("Owner") == UserId then
                 print("[ClaimBooth] Success")
                 return true
             end
         end
-
         print("[ClaimBooth] Retry")
         return false
     end)()
@@ -260,60 +178,72 @@ end
 
 local function CreateListing()
     print("[CreateListing] Started")
-
     local ListedItems
-
     for _, ClaimedBooth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
         if ClaimedBooth:GetAttribute("Owner") == UserId then
             print("[CreateListing] Found Owned Booth")
-
             ListedItems = ClaimedBooth:WaitForChild("Pets"):WaitForChild("BoothTop"):WaitForChild("PetScroll")
             break
         end
     end
-
-    for Hash, Value in pairs(PlayerData.Pets) do
-        print("[CreateListing] Listing:", Hash, Value)
-
-        local args = {
-            Hash,
-            (Data[Value] or 35000000) + Const.GAME.HUGE_SELLING_BASE_ADDED_AMOUNT,
-            1
-        }
-
-        print("[CreateListing] Price:", (Data[Value] or 35000000) + Const.GAME.HUGE_SELLING_BASE_ADDED_AMOUNT)
-
-        game.ReplicatedStorage:WaitForChild("Network"):WaitForChild("Booths_CreateListing"):InvokeServer(unpack(args))
-
-        task.wait(Const.WAIT.NORMAL)
+    local BoothPrompt = Player.PlayerGui:WaitForChild("BoothPrompt")
+    local PostButton = BoothPrompt:WaitForChild("Frame"):WaitForChild("Slots"):WaitForChild("Items"):WaitForChild("SlotsSection"):WaitForChild("Slots"):WaitForChild("Post"):WaitForChild("Post")
+    local Pets = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filter"):WaitForChild("Pet"):WaitForChild("Holder")
+    local ConfirmButton = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Confirm")
+    local TextInput = Player.PlayerGui:WaitForChild("_MISC"):WaitForChild("TextInput")
+    local PriceInput = TextInput:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("CURRENCY"):WaitForChild("Input"):WaitForChild("Input")
+    local SubmitButton = TextInput:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("CURRENCY"):WaitForChild("Ok")
+    local Message = Player.PlayerGui:WaitForChild("Message")
+    local AcceptButton = Message:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("Yes")
+    BoothPrompt.Enabled = true
+    for _ in HugeAmount do
+        firesignal(PostButton.Activated)
+        while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 do
+            task.wait()
+        end
+        for _, Pet in ipairs(Pets:GetChildren()) do
+            if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
+                local Image = Pet.Icon.Image
+                firesignal(Pet.Activated)
+                while not ConfirmButton.Visible do
+                    ConfirmButton:GetPropertyChangedSignal("Visible"):Wait()
+                end
+                firesignal(ConfirmButton.Activated)
+                while not TextInput.Enabled do
+                    ConfirmButton:GetPropertyChangedSignal("Visible"):Wait()
+                end
+                PriceInput = (Data[Image] or 35000000) + Const.GAME.HUGE_SELLING_BASE_ADDED_AMOUNT
+                task.wait()
+                firesignal(SubmitButton.Activated)
+                while not Message.Enabled do
+                    Message:GetPropertyChangedSignal("Enabled"):Wait()
+                end
+                task.wait(Const.WAIT.NORMAL)
+            end
+        end
     end
-
-    print("[CreateListing] HugeAmount:", PlayerData.HugeAmount)
-    print("[CreateListing] Listed Children:", #ListedItems:GetChildren())
-
-    if PlayerData.HugeAmount ~= #ListedItems:GetChildren() - 2 then
-        print("[CreateListing] Amount Mismatch -> GetPlayerData()")
-        GetPlayerData()
+    print("[CreateListing] HugeAmount:", HugeAmount)
+    print("[CreateListing] Listed Children:", #ListedItems:GetChildren() - 2)
+    if HugeAmount ~= #ListedItems:GetChildren() - 2 then
+        Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
+        print("[CreateListing] Amount Mismatch -> Rehop")
+        print("[CreateListing] Finished")
+        return
     end
-
     print("[CreateListing] Finished")
 end
 
 
 local function ScanMarketplace()
     print("[ScanMarketplace] Started")
-
     local ToBuy = {}
-
     for _, Booth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
         local Pets = Booth:FindFirstChild("Pets")
         local BoothTop = Pets and Pets:FindFirstChild("BoothTop")
         local PetScroll = BoothTop and BoothTop:FindFirstChild("PetScroll")
-
         if not PetScroll then
             continue
         end
-
         for _, Item in ipairs(PetScroll:GetChildren()) do
             if Item.Parent and Item.ClassName == "Frame" and Data[Item.Holder.ItemSlot.Icon.Image] ~= nil and Data[Item.Holder.ItemSlot.Icon.Image] <= Const.GAME.MAX_PRICE_BUYING_HUGE and Data[Item.Holder.ItemSlot.Icon.Image] - Const.GAME.MINIMUM_BUYING_HUGE_UNDER_PRICE >= ConvertNumber(Item.Buy.Cost.ContentText) then
                 print(
@@ -324,7 +254,6 @@ local function ScanMarketplace()
                     "Price:",
                     ConvertNumber(Item.Buy.Cost.ContentText)
                 )
-
                 table.insert(ToBuy, {
                     Owner = Booth:GetAttribute("Owner"),
                     Item = Item,
@@ -332,45 +261,31 @@ local function ScanMarketplace()
             end
         end
     end
-
     print("[ScanMarketplace] Candidates:", #ToBuy)
-
     for _, ItemToBuy in ipairs(ToBuy) do
         if ItemToBuy.Item and ItemToBuy.Item.Parent then
             print("[ScanMarketplace] Checking:", ItemToBuy.Item.Name)
-
             if Const.INSTANCE.DIAMONDS.Value < ConvertNumber(ItemToBuy.Item.Buy.Cost.ContentText) then
                 print("[ScanMarketplace] Not Enough Diamonds")
                 continue
             end
-
             while ItemToBuy.Item.Parent and ItemToBuy.Item:FindFirstChild("CircularBar") do
                 print("[ScanMarketplace] Waiting CircularBar:", ItemToBuy.Item.Name)
                 task.wait()
             end
-
             if ItemToBuy.Item.Parent then
                 print("[ScanMarketplace] Buying:", ItemToBuy.Item.Name)
-
                 BuyItem(ItemToBuy.Owner, ItemToBuy.Item.Name)
-
-                PlayerData.Pets[ItemToBuy.Item.Name] = ItemToBuy.Item.Holder.ItemSlot.Icon.Image
-                PlayerData.HugeAmount += 1
-
-                print("[ScanMarketplace] HugeAmount:", PlayerData.HugeAmount)
+                HugeAmount += 1
+                print("[ScanMarketplace] HugeAmount:", HugeAmount)
             end
-
-            if PlayerData.HugeAmount >= Const.GAME.MINIMUM_HUGES_TO_SELL then
-                print("[ScanMarketplace] Enough Huges -> GetPlayerData()")
-
-                GetPlayerData()
+            if HugeAmount >= Const.GAME.MINIMUM_HUGES_TO_SELL then
+                print("[ScanMarketplace] Enough Huges Sell Huges")
                 return
             end
         end
     end
-
-    print("[ScanMarketplace] Nothing To Buy -> Rehop")
-
+    print("[ScanMarketplace] Finished -> Rehop")
     task.wait(Const.WAIT.NORMAL)
     Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
 end
@@ -415,6 +330,10 @@ function Process()
     ListedItems.ChildRemoved:Connect(function(Obj)
         print("[Process] Sold:", Obj.Name)
 
+        if Obj.ClassName ~= "Frame" then
+            return
+        end
+
         PlayerData.Pets[Obj.Name] = nil
         PlayerData.HugeAmount -= 1
 
@@ -442,132 +361,79 @@ local function OnCreate()
     print("[OnCreate] Started")
     print("[OnCreate] PlaceId:", game.PlaceId)
     
-    --// Remove Changelog
-    print("[Changelog] Started")
-    local BASE_TIME = 1783180800
-    local WEEK_TIME = 604800
-    local UpdateTime = 0
-    local now = os.time()
-    
-    UpdateTime = math.ceil((now - BASE_TIME) / WEEK_TIME) * WEEK_TIME + BASE_TIME
-    
-    print("[Changelog] Checking if Update is Soon")
-    local IsUpdateSoon =
-        now >= (UpdateTime - 900) and
-        now < UpdateTime
 
-    local Changelog = Player.PlayerGui:WaitForChild("Changelog")
-    if IsUpdateSoon then
-        Changelog:GetPropertyChangedSignal("Enabled"):Once(function()
-            if Changelog.Enabled then
-                Changelog:WaitForChild("Frame").Position = UDim2.new(0.37,0,0.66,0)
-            end
-        end)
-    end
-    print("[Changelog] Ended")
-
-    --// Remove Loginstreak
-    local LoginStreak = Player.PlayerGui:WaitForChild("LoginStreak")
-    LoginStreak:GetPropertyChangedSignal("Enabled"):Once(function()
-        if LoginStreak.Enabled then
-            LoginStreak:WaitForChild("Frame").Position = UDim2.new(0.5,0,0.8,0)
-        end
-    end)
-
-    --// Get Data
-    local Success, Result = pcall(readfile, Const.DATA.PATH.PETS_DATA)
-
-    print("[OnCreate] PETS_DATA Read:", Success)
-
-    if Success and Result ~= nil then
-        Data = HttpService:JSONDecode(Result)
-
-        print("[OnCreate] PETS_DATA Loaded")
-
-        if os.time() - Data.LastSuccessfulAPIRequest >= Const.DATA.MAX_OLDEST_PETS_DATA then
-            print("[OnCreate] PETS_DATA Too Old -> Rehop")
-
-            Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
-            return
-        end
-    else
-        print("[OnCreate] Failed To Read PETS_DATA -> Rehop")
-
-        Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
-        return
-    end
-
-    --// Get Player Data
-    local Success, Result = pcall(readfile, Const.DATA.PATH.PLAYER_INV)
-
-    print("[OnCreate] PLAYER_INV Read:", Success)
-
-    if Success and Result ~= nil then
-        PlayerData = HttpService:JSONDecode(Result)
-
-        print("[OnCreate] PLAYER_INV Loaded")
-
-        if PlayerData.PlayerState == nil or PlayerData.HugeAmount == nil or PlayerData.Pets == nil or PlayerData.PlayerState == Const.STATE.GETTING_PLAYER_DATA then
-            print("[OnCreate] Invalid PlayerData -> Rebuild")
-
-            PlayerData = {
-                HugeAmount = 0,
-                Pets = {},
-                PlayerState = Const.STATE.GETTING_PLAYER_DATA
-            }
-            
-            GetPlayerData()
-            return
-        end
-    else
-        print("[OnCreate] No PLAYER_INV -> Rebuild")
-
-        PlayerData = {
-            HugeAmount = 0,
-            Pets = {},
-            PlayerState = Const.STATE.GETTING_PLAYER_DATA
-        }
-
-        GetPlayerData()
-        return
-    end
-
-    print("[OnCreate] HugeAmount:", PlayerData.HugeAmount)
-
-    --// Decide PlayerState
+    --// if not Trading Plaza then teleport there
     if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
         print("[OnCreate] In Start Lobby")
-
         Teleport(Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE)
         return
     end
 
-    if PlayerData.HugeAmount >= Const.GAME.MINIMUM_HUGES_TO_SELL then
-        PlayerData.PlayerState = Const.STATE.SELLING
-        print("[OnCreate] State = SELLING")
-    else
-        PlayerData.PlayerState = Const.STATE.BUYING
-        print("[OnCreate] State = BUYING")
+
+    --// Remove Changelog
+    print("[Changelog] Setting up GetPropertyChangedSignal")
+    local Changelog = Player.PlayerGui:WaitForChild("Changelog")
+    Changelog:GetPropertyChangedSignal("Enabled"):Connect(function()
+        if Changelog.Enabled then
+            firesignal(Changelog:WaitForChild("Frame"):WaitForChild("ContentFrame"):WaitForChild("Ok").Activated)
+        end
+    end)
+
+
+    --// Remove Loginstreak
+    print("[LoginStreak] Setting up GetPropertyChangedSignal")
+    local LoginStreak = Player.PlayerGui:WaitForChild("LoginStreak")
+    LoginStreak:GetPropertyChangedSignal("Enabled"):Connect(function()
+        if LoginStreak.Enabled then
+            firesignal(LoginStreak:WaitForChild("Frame"):WaitForChild("ItemsFrame"):WaitForChild("Free"):WaitForChild("Button").Activated)
+        end
+    end)
+
+
+    --// Get Data
+    print("[GetData] Trying to load Data")
+    repeat
+        local Success, Result = pcall(readfile, Const.DATA.PATH.PETS_DATA)
+        if not Success or Result == nil or os.time() - Data.LastSuccessfulAPIRequest >= Const.DATA.MAX_OLDEST_PETS_DATA then
+            print("[GetData] Failed to load Data or Data is just to old")
+            task.wait(Const.WAIT.LONG)
+        end
+    until Success and Result ~= nil and not (os.time() - Data.LastSuccessfulAPIRequest >= Const.DATA.MAX_OLDEST_PETS_DATA)
+    Data = HttpService:JSONDecode(Result)
+    print("[GetData] PETS_DATA Loaded")
+
+
+    --// Get HugeAmount
+    print("[HugeAmount] Started")
+    firesignal(Player.PlayerGui:WaitForChild("Main"):WaitForChild("BottomButtons"):WaitForChild("BUTTONS"):WaitForChild("Inventory").Activated)
+    local Pets = Player.PlayerGui:WaitForChild("Inventory"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Pets"):WaitForChild("Pets")
+    while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 do
+        task.wait()
     end
+    for _, Item in ipairs(Pets:GetChildren()) do
+        if Item.ClassName == "TextButton" and Item:WaitForChild("Strength").Text == "???" then
+            HugeAmount += 1
+        end
+    end
+    firesignal(Player.PlayerGui:WaitForChild("Inventory"):WaitForChild("Frame"):WaitForChild("Close").Activated)
+    print("[HugeAmount] " , HugeAmount)
+    print("[HugeAmount] Finished")
 
-    --// Perform Actions based on PlayerState
-    if PlayerData.PlayerState == Const.STATE.BUYING then
+
+    --// Perform Actions based on HugeAmount
+    print("[OnCreate] Perform Actions based on")  
+    if HugeAmount < Const.GAME.MINIMUM_HUGES_TO_SELL then
         print("[OnCreate] Execute BUYING")
-
         ScanMarketplace()
-
-    elseif PlayerData.PlayerState == Const.STATE.SELLING then
+    else
         print("[OnCreate] Execute SELLING")
-
         if IsServerViable() then
             print("[OnCreate] Server Viable")
-
             ClaimBooth()
             CreateListing()
             Process()
         else
             print("[OnCreate] Server Not Viable")
-
             Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
         end
     end
