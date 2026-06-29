@@ -197,6 +197,7 @@ local function CreateListing()
         print("[CreateListing] 2")
         for _, Pet in ipairs(Pets:GetChildren()) do
             if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
+                task.wait(Const.WAIT.NORMAL)
                 local Image = Pet.Icon.Image
                 print("[CreateListing] 3")
                 firesignal(Pet.Activated)
@@ -218,7 +219,6 @@ local function CreateListing()
                 while not Message.Enabled do
                     Message:GetPropertyChangedSignal("Enabled"):Wait()
                 end
-                task.wait(Const.WAIT.NORMAL)
                 print("[CreateListing] 7")
                 break
             end
