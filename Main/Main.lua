@@ -188,7 +188,7 @@ local function CreateListing()
     while not BoothPrompt.Enabled do
         BoothPrompt:GetPropertyChangedSignal("Enabled"):Wait()
     end
-    for _ in HugeAmount do
+    for _ = 1,HugeAmount do
         firesignal(PostButton.Activated)
         local Pets = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filter"):WaitForChild("Pet"):WaitForChild("Holder")
         while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 do
