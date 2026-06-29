@@ -30,6 +30,7 @@ local Const = {
         },
     },
     WAIT = {
+        SUPER_SHORT = 0.1,
         SHORT = 0.5,
         NORMAL = 1,
         LONG = 5,
@@ -159,6 +160,25 @@ local function ClaimBooth()
 end
 
 
+local function FireUntilProperty(Signal, Object, Property, Value)
+    firesignal(Signal)
+    if Object[Property] == Value then
+        return
+    end
+    local WaitedTime = 0
+    while task.wait(Const.WAIT.SUPER_SHORT) do
+        if Object[Property] == Value then
+            break
+        end
+        WaitedTime += Const.WAIT.SUPER_SHORT
+        if WaitedTime >= Const.WAIT.NORMAL then
+            WaitedTime = 0
+            firesignal(Signal)
+        end
+    end
+end
+
+
 local function CreateListing()
     print("[CreateListing] Started")
     local ListedItems
@@ -181,40 +201,45 @@ local function CreateListing()
     local AcceptButton = Message:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("Yes")
     print("[CreateListing] Opening Booth Menu")
     HRT.Position = OwnedBooth.Interact.Position
-    task.wait(Const.WAIT.NORMAL)
-    firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
-    while not BoothPrompt.Enabled do
-        BoothPrompt:GetPropertyChangedSignal("Enabled"):Wait()
-    end
+    FireUntilProperty(
+        Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated,
+        BoothPrompt,
+        "Enabled",
+        true
+    )
     for _ = 1,HugeAmount do
         print("[CreateListing] 1")
+        task.wait(Const.WAIT.NORMAL)
         firesignal(PostButton.Activated)
         local Pets = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filters"):WaitForChild("Pet"):WaitForChild("Holder")
         while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 do
             task.wait()
         end
-        print("[CreateListing] 2")
         for _, Pet in ipairs(Pets:GetChildren()) do
             if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
                 local Image = Pet.Icon.Image
+                print("[CreateListing] 2")
+                FireUntilProperty(
+                    Pet.Activated,
+                    Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm"),
+                    "Visible",
+                    true
+                )
                 print("[CreateListing] 3")
-                firesignal(Pet.Activated)
-                local ConfirmButton = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm")
-                while not ConfirmButton.Visible do
-                    ConfirmButton:GetPropertyChangedSignal("Visible"):Wait()
-                end
+                FireUntilProperty(
+                    Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Confirm").Activated,
+                    TextInput,
+                    "Enabled",
+                    true
+                )
                 print("[CreateListing] 4")
-                firesignal(Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Confirm").Activated)
-                while not TextInput.Enabled do
-                    ConfirmButton:GetPropertyChangedSignal("Visible"):Wait()
-                end
-                print("[CreateListing] 5")
                 PriceInput.Text = tostring((Data[Image] or 35000000) + Const.GAME.HUGE_SELLING_BASE_ADDED_AMOUNT)
-                firesignal(SubmitButton.Activated)
-                while not Message.Enabled do
-                    Message:GetPropertyChangedSignal("Enabled"):Wait()
-                end
-                print("[CreateListing] 6")
+                FireUntilProperty(
+                    SubmitButton.Activated,
+                    Message,
+                    "Enabled",
+                    true
+                )
                 break
             end
         end
