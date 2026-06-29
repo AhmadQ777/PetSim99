@@ -171,8 +171,6 @@ local function CreateListing()
     end
     local BoothPrompt = Player.PlayerGui:WaitForChild("BoothPrompt")
     local PostButton = BoothPrompt:WaitForChild("Frame"):WaitForChild("Slots"):WaitForChild("Items"):WaitForChild("SlotsSection"):WaitForChild("Slots"):WaitForChild("Post"):WaitForChild("Post")
-    local Pets = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filter"):WaitForChild("Pet"):WaitForChild("Holder")
-    local ConfirmButton = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Confirm")
     local TextInput = Player.PlayerGui:WaitForChild("_MISC"):WaitForChild("TextInput")
     local PriceInput = TextInput:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("CURRENCY"):WaitForChild("Input"):WaitForChild("Input")
     local SubmitButton = TextInput:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("CURRENCY"):WaitForChild("Ok")
@@ -181,6 +179,7 @@ local function CreateListing()
     BoothPrompt.Enabled = true
     for _ in HugeAmount do
         firesignal(PostButton.Activated)
+        local Pets = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filter"):WaitForChild("Pet"):WaitForChild("Holder")
         while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 do
             task.wait()
         end
@@ -188,6 +187,7 @@ local function CreateListing()
             if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
                 local Image = Pet.Icon.Image
                 firesignal(Pet.Activated)
+                local ConfirmButton = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Confirm")
                 while not ConfirmButton.Visible do
                     ConfirmButton:GetPropertyChangedSignal("Visible"):Wait()
                 end
