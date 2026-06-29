@@ -227,7 +227,7 @@ local function CreateListing()
                 )
                 print("[CreateListing] 3")
                 FireUntilProperty(
-                    Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Confirm").Activated,
+                    Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm").Activated,
                     TextInput,
                     "Enabled",
                     true
