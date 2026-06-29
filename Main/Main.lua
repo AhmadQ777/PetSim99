@@ -219,15 +219,16 @@ local function CreateListing()
             if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
                 local Image = Pet.Icon.Image
                 print("[CreateListing] 2")
+                local ConfirmButton = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm")
                 FireUntilProperty(
                     Pet.Activated,
-                    Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm"),
+                    ConfirmButton,
                     "Visible",
                     true
                 )
                 print("[CreateListing] 3")
                 FireUntilProperty(
-                    Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm").Activated,
+                    ConfirmButton,
                     TextInput,
                     "Enabled",
                     true
