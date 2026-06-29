@@ -113,10 +113,8 @@ def build():
     if not output:
         return None
 
-    return {
-        "data": output,
-        "LastSuccessfulAPIRequest": now
-    }
+    output["LastSuccessfulAPIRequest"] = now
+    return output
 
 
 # =====================
