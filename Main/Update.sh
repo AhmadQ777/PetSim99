@@ -4,6 +4,7 @@
 
 pkg update -y && pkg upgrade -y
 pkg install python curl tmux procps -y
+pip install requests
 
 termux-setup-storage
 termux-wake-lock
