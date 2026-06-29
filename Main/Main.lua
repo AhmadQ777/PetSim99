@@ -228,7 +228,7 @@ local function CreateListing()
                 )
                 print("[CreateListing] 3")
                 FireUntilProperty(
-                    ConfirmButton,
+                    ConfirmButton.Activated,
                     TextInput,
                     "Enabled",
                     true
