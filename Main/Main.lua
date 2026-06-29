@@ -394,6 +394,7 @@ local function OnCreate()
         end
     end
     Player.PlayerGui:WaitForChild("Inventory").Enabled = false
+    task.wait()
     print("[HugeAmount] " , HugeAmount)
     print("[HugeAmount] Finished")
 
@@ -406,7 +407,6 @@ local function OnCreate()
     else
         print("[OnCreate] Execute SELLING")
         if IsServerViable() then
-            task.wait(Const.WAIT.SHORT)
             print("[OnCreate] Server Viable")
             ClaimBooth()
             CreateListing()
