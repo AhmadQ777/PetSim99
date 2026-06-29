@@ -181,12 +181,14 @@ local function CreateListing()
     local AcceptButton = Message:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("Yes")
     print("[CreateListing] Opening Booth Menu")
     HRT.Position = OwnedBooth.Interact.Position
+    task.wait(Const.WAIT.SHORT)
     firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
     while not BoothPrompt.Enabled do
         BoothPrompt:GetPropertyChangedSignal("Enabled"):Wait()
     end
     for _ = 1,HugeAmount do
         print("[CreateListing] 1")
+        task.wait(Const.WAIT.SHORT)
         firesignal(PostButton.Activated)
         local Pets = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filters"):WaitForChild("Pet"):WaitForChild("Holder")
         while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 do
@@ -197,19 +199,22 @@ local function CreateListing()
             if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
                 local Image = Pet.Icon.Image
                 print("[CreateListing] 3")
+                task.wait(Const.WAIT.SHORT)
                 firesignal(Pet.Activated)
                 local ConfirmButton = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Confirm")
                 while not ConfirmButton.Visible do
                     ConfirmButton:GetPropertyChangedSignal("Visible"):Wait()
                 end
+                task.wait(Const.WAIT.SHORT)
                 print("[CreateListing] 4")
-                firesignal(ConfirmButton.Activated)
+                firesignal(Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Confirm").Activated)
                 while not TextInput.Enabled do
                     ConfirmButton:GetPropertyChangedSignal("Visible"):Wait()
                 end
                 print("[CreateListing] 5")
                 PriceInput.Text = (Data[Image] or 35000000) + Const.GAME.HUGE_SELLING_BASE_ADDED_AMOUNT
                 print("[CreateListing] 6")
+                task.wait(Const.WAIT.SHORT)
                 firesignal(SubmitButton.Activated)
                 while not Message.Enabled do
                     Message:GetPropertyChangedSignal("Enabled"):Wait()
