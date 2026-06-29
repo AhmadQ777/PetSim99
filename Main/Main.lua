@@ -350,12 +350,14 @@ local function OnCreate()
     local MAX_OLDEST_DATA = 600
     repeat
         local Success, Result = pcall(readfile, "/storage/emulated/0/Delta/Workspace/PETS_DATA.json")
-        if not Success or Result == nil then
+        if Success or Result ~= nil then
             Data = HttpService:JSONDecode(Result)
+            if Data.LastSuccessfulAPIRequest ~= nil and os.time() - Data.LastSuccessfulAPIRequest < MAX_OLDEST_DATA then
+                break
+            end
             task.wait(Const.WAIT.LONG)
         end
-    until Success and Result ~= nil and not (os.time() - Data.LastSuccessfulAPIRequest >= MAX_OLDEST_DATA)
-    Data = HttpService:JSONDecode(Result)
+    until false
     print("[GetData] PETS_DATA Loaded")
 
 
