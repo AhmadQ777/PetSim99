@@ -110,6 +110,6 @@ while true; do
         start_api
     fi
 
-    sleep 180
+    sleep 300
 
 done
