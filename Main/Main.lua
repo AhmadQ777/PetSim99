@@ -11,12 +11,6 @@ local UserId = Player.UserId
 
 --// Decalaring Const Variables
 local Const = {
-    INSTANCE = {
-        DIAMONDS = Player:WaitForChild("leaderstats"):WaitForChild("💎 Diamonds"),
-        PLAYER_INVENTORY = Player:WaitForChild("PlayerGui"):WaitForChild("Inventory"),
-        EQUIPPED_PETS = Player:WaitForChild("PlayerGui"):WaitForChild("Inventory"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Pets"):WaitForChild("EquippedPets"),
-        CLAIMED_BOOTHS = game.Workspace:WaitForChild("__THINGS"):WaitForChild("Booths"),
-    },
     DATA = {
         PATH = {
             PLAYER_INV = "/storage/emulated/0/Delta/Workspace/PLAYER_INV.json",
@@ -34,21 +28,13 @@ local Const = {
         TRADING_PLAZA_PLACE_ID = 15502339080,
     },
     TELEPORT = {
-        INSTANCE = {
-            MESSAGE_GUI = Player:WaitForChild("PlayerGui"):WaitForChild("Message"),
-        },
         POSITION = {
             HRT = CFrame.new(-918.189453, 284.012909, -2345.07007, 0.837983489, -1.24378534e-08, -0.545695603, 2.95825231e-08, 1, 2.26349854e-08, 0.545695603, -3.51107978e-08, 0.837983489),
         },
         ACTION = {
-            REJOIN_SERVER = "RejoinServer",
             REHOP_SERVER = "RehopServer",
             TELEPORT_TO_OTHER_PLACE = "TeleportToOtherPlace"
         },
-    },
-    STATE = {
-        BUYING = "Buying",
-        SELLING = "Selling",
     },
     WAIT = {
         SHORT = 0.5,
@@ -70,7 +56,7 @@ local HugeAmount = 0
 --// Intialize Functions
 local function Teleport(TeleportToPerform)
     print("[Teleport] Called:", TeleportToPerform)
-    
+
     if TeleportToPerform == Const.TELEPORT.ACTION.REHOP_SERVER then
         print("[Teleport] REHOP_SERVER")
         if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
@@ -89,9 +75,14 @@ local function Teleport(TeleportToPerform)
             print("[Teleport] TRADING_PLAZA_PLACE_ID")
             repeat
                 HRT:PivotTo(Const.TELEPORT.POSITION.HRT)
-                task.wait(Const.WAIT.SHORT)
-                firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
+                task.wait(Const.WAIT.SHORT)    
             until (HRT.Position - Const.TELEPORT.POSITION.HRT).Magnitude < 5
+            firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
+            local Message = Player.PlayerGui:WaitForChild("Message")
+            while not Message.Enabled do
+                Message:GetPropertyChangedSignal("Enabled"):Wait()
+            end
+            firesignal(Message:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("Yes").Activated)
         end
     end
 end
@@ -163,7 +154,7 @@ local function ClaimBooth()
         game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Booths_ClaimBooth"):InvokeServer(tostring(BoothId))
     until (function()
         task.wait(Const.WAIT.NORMAL)
-        for _, ClaimedBooth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
+        for _, ClaimedBooth in ipairs(game.Workspace:WaitForChild("__THINGS"):WaitForChild("Booths"):GetChildren()) do
             if ClaimedBooth:GetAttribute("Owner") == UserId then
                 print("[ClaimBooth] Success")
                 return true
@@ -178,7 +169,7 @@ end
 local function CreateListing()
     print("[CreateListing] Started")
     local ListedItems
-    for _, ClaimedBooth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
+    for _, ClaimedBooth in ipairs(game.Workspace:WaitForChild("__THINGS"):WaitForChild("Booths"):GetChildren()) do
         if ClaimedBooth:GetAttribute("Owner") == UserId then
             print("[CreateListing] Found Owned Booth")
             ListedItems = ClaimedBooth:WaitForChild("Pets"):WaitForChild("BoothTop"):WaitForChild("PetScroll")
@@ -236,7 +227,7 @@ end
 local function ScanMarketplace()
     print("[ScanMarketplace] Started")
     local ToBuy = {}
-    for _, Booth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
+    for _, Booth in ipairs(game.Workspace:WaitForChild("__THINGS"):WaitForChild("Booths"):GetChildren()) do
         local Pets = Booth:FindFirstChild("Pets")
         local BoothTop = Pets and Pets:FindFirstChild("BoothTop")
         local PetScroll = BoothTop and BoothTop:FindFirstChild("PetScroll")
@@ -264,7 +255,7 @@ local function ScanMarketplace()
     for _, ItemToBuy in ipairs(ToBuy) do
         if ItemToBuy.Item and ItemToBuy.Item.Parent then
             print("[ScanMarketplace] Checking:", ItemToBuy.Item.Name)
-            if Const.INSTANCE.DIAMONDS.Value < ConvertNumber(ItemToBuy.Item.Buy.Cost.ContentText) then
+            if Player:WaitForChild("leaderstats"):WaitForChild("💎 Diamonds").Value < ConvertNumber(ItemToBuy.Item.Buy.Cost.ContentText) then
                 print("[ScanMarketplace] Not Enough Diamonds")
                 continue
             end
@@ -322,7 +313,7 @@ end)
 function Process()
     print("[Process] Started")
     local ListedItems
-    for _, ClaimedBooth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
+    for _, ClaimedBooth in ipairs(game.Workspace:WaitForChild("__THINGS"):WaitForChild("Booths"):GetChildren()) do
         if ClaimedBooth:GetAttribute("Owner") == UserId then
             print("[Process] Found Owned Booth")
             ListedItems = ClaimedBooth:WaitForChild("Pets"):WaitForChild("BoothTop"):WaitForChild("PetScroll")
