@@ -201,7 +201,7 @@ local function CreateListing()
                 print("[CreateListing] 3")
                 task.wait(Const.WAIT.SHORT)
                 firesignal(Pet.Activated)
-                local ConfirmButton = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Confirm")
+                local ConfirmButton = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm")
                 while not ConfirmButton.Visible do
                     ConfirmButton:GetPropertyChangedSignal("Visible"):Wait()
                 end
