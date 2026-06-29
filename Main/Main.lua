@@ -393,7 +393,8 @@ local function OnCreate()
             HugeAmount += 1
         end
     end
-    Player.PlayerGui:WaitForChild("Inventory").Enabled = false
+    task.wait(Const.WAIT.NORMAL)
+    firesignal(Player.PlayerGui:WaitForChild("Inventory"):WaitForChild("Frame"):WaitForChild("Close").Activated)
     print("[HugeAmount] " , HugeAmount)
     print("[HugeAmount] Finished")
 
