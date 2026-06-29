@@ -29,7 +29,7 @@ local Const = {
         MINIMUM_BUYING_HUGE_UNDER_PRICE = 500000,
         MINIMUM_HUGES_TO_SELL = 3,
         MAX_PRICE_BUYING_HUGE = 30000000,
-        MINIMUM_PLAYERS = 11,
+        MINIMUM_PLAYERS = 12,
         START_LOBBY_PLACE_ID = 8737899170,
         TRADING_PLAZA_PLACE_ID = 15502339080,
     },
@@ -281,7 +281,14 @@ local function ScanMarketplace()
             end
             if HugeAmount >= Const.GAME.MINIMUM_HUGES_TO_SELL then
                 print("[ScanMarketplace] Enough Huges Sell Huges")
-                return
+                if IsServerViable() then
+                    ClaimBooth()
+                    CreateListing()
+                    Process()
+                    return
+                else
+                    break
+                end
             end
         end
     end
@@ -315,39 +322,25 @@ end)
 --// Process
 function Process()
     print("[Process] Started")
-
     local ListedItems
-
     for _, ClaimedBooth in ipairs(Const.INSTANCE.CLAIMED_BOOTHS:GetChildren()) do
         if ClaimedBooth:GetAttribute("Owner") == UserId then
             print("[Process] Found Owned Booth")
-
             ListedItems = ClaimedBooth:WaitForChild("Pets"):WaitForChild("BoothTop"):WaitForChild("PetScroll")
             break
         end
     end
-
     ListedItems.ChildRemoved:Connect(function(Obj)
-        print("[Process] Sold:", Obj.Name)
-
-        if Obj.ClassName ~= "Frame" then
-            return
+        if Obj.ClassName == "Frame" then
+            HugeAmount -= 1
         end
-
-        PlayerData.Pets[Obj.Name] = nil
-        PlayerData.HugeAmount -= 1
-
-        print("[Process] HugeAmount:", PlayerData.HugeAmount)
-
-        if PlayerData.HugeAmount <= 1 then
+        if HugeAmount <= 1 then
             print("[Process] HugeAmount <= 1 -> ScanMarketplace()")
             ScanMarketplace()
         end
     end)
-
     while task.wait(30) do
         print("[Process] Server Check")
-
         if not IsServerViable() then
             print("[Process] Server Not Viable -> Rehop")
             Teleport(Const.TELEPORT.ACTION.REHOP_SERVER)
