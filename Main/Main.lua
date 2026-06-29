@@ -162,13 +162,16 @@ end
 local function CreateListing()
     print("[CreateListing] Started")
     local ListedItems
+    local OwnedBooth 
     for _, ClaimedBooth in ipairs(game.Workspace:WaitForChild("__THINGS"):WaitForChild("Booths"):GetChildren()) do
         if ClaimedBooth:GetAttribute("Owner") == UserId then
             print("[CreateListing] Found Owned Booth")
+            OwnedBooth = ClaimedBooth
             ListedItems = ClaimedBooth:WaitForChild("Pets"):WaitForChild("BoothTop"):WaitForChild("PetScroll")
             break
         end
     end
+    print("[CreateListing] GETTING ALL VARIABLES NEEDED")
     local BoothPrompt = Player.PlayerGui:WaitForChild("BoothPrompt")
     local PostButton = BoothPrompt:WaitForChild("Frame"):WaitForChild("Slots"):WaitForChild("Items"):WaitForChild("SlotsSection"):WaitForChild("Slots"):WaitForChild("Post"):WaitForChild("Post")
     local TextInput = Player.PlayerGui:WaitForChild("_MISC"):WaitForChild("TextInput")
@@ -176,43 +179,42 @@ local function CreateListing()
     local SubmitButton = TextInput:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("CURRENCY"):WaitForChild("Ok")
     local Message = Player.PlayerGui:WaitForChild("Message")
     local AcceptButton = Message:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("Yes")
-    local OwnedBooth 
-    for _, ClaimedBooth in ipairs(game.Workspace:WaitForChild("__THINGS"):WaitForChild("Booths"):GetChildren()) do
-        if ClaimedBooth:GetAttribute("Owner") == UserId then
-            OwnedBooth = ClaimedBooth
-        end
-    end
+    print("[CreateListing] Opening Booth Menu")
     HRT.Position = OwnedBooth.Interact.Position
-    task.wait(Const.WAIT.SHORT)
     firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
     while not BoothPrompt.Enabled do
-        firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
         BoothPrompt:GetPropertyChangedSignal("Enabled"):Wait()
     end
     for _ = 1,HugeAmount do
+        print("[CreateListing] 1")
         firesignal(PostButton.Activated)
         local Pets = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filter"):WaitForChild("Pet"):WaitForChild("Holder")
         while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 do
             task.wait()
         end
+        print("[CreateListing] 2")
         for _, Pet in ipairs(Pets:GetChildren()) do
             if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
                 local Image = Pet.Icon.Image
+                print("[CreateListing] 3")
                 firesignal(Pet.Activated)
                 local ConfirmButton = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Confirm")
                 while not ConfirmButton.Visible do
                     ConfirmButton:GetPropertyChangedSignal("Visible"):Wait()
                 end
+                print("[CreateListing] 4")
                 firesignal(ConfirmButton.Activated)
                 while not TextInput.Enabled do
                     ConfirmButton:GetPropertyChangedSignal("Visible"):Wait()
                 end
+                print("[CreateListing] 5")
                 PriceInput.Text = (Data[Image] or 35000000) + Const.GAME.HUGE_SELLING_BASE_ADDED_AMOUNT
-                task.wait()
+                print("[CreateListing] 6")
                 firesignal(SubmitButton.Activated)
                 while not Message.Enabled do
                     Message:GetPropertyChangedSignal("Enabled"):Wait()
                 end
+                print("[CreateListing] 7")
                 task.wait(Const.WAIT.NORMAL)
             end
         end
@@ -325,6 +327,7 @@ end
 
 --// Starting Code
 local function OnCreate()
+    task.wait(Const.WAIT.LONG)
     print("[OnCreate] Started")
     print("[OnCreate] PlaceId:", game.PlaceId)
     
