@@ -241,6 +241,8 @@ local function CreateListing()
                     "Enabled",
                     true
                 )
+                task.wait(Const.WAIT.SHORT)
+                firesignal(AcceptButton.Activated)
                 break
             end
         end
