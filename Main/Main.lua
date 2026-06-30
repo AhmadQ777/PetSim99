@@ -229,7 +229,7 @@ local function CreateListing()
                 print("[CreateListing] 2")
                 local ConfirmButton = InventorySelect:WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm")
                 FireUntilProperty(
-                    Pet.MouseButtonButton1Click,
+                    Pet.MouseButton1Click,
                     ConfirmButton,
                     "Visible",
                     true
