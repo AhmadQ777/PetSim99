@@ -228,6 +228,7 @@ local function CreateListing()
                 local Image = Pet.Icon.Image
                 print("[CreateListing] 2")
                 local ConfirmButton = InventorySelect:WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm")
+                task.wait(Const.WAIT.LONG)
                 FireUntilProperty(
                     Pet.Activated,
                     ConfirmButton,
