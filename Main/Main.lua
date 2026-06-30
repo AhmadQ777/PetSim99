@@ -199,7 +199,20 @@ local function CreateListing()
     local SubmitButton = TextInput:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("CURRENCY"):WaitForChild("Ok")
     local Message = Player.PlayerGui:WaitForChild("Message")
     local AcceptButton = Message:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("Yes")
-    
+    while true do
+        HRT.Position = OwnedBooth.Interact.Position
+        task.wait()
+        if (HRT.Position - OwnedBooth.Interact.Position).Magnitude < 5 then
+            break
+        end
+    end    
+    task.wait(Const.WAIT.SUPER_SHORT)
+    firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
+
+    for _ = 1,HugeAmount do
+        
+    end
+
     print("[CreateListing] HugeAmount:", HugeAmount)
     print("[CreateListing] Listed Children:", #ListedItems:GetChildren() - 2)
     if HugeAmount ~= #ListedItems:GetChildren() - 2 then
@@ -351,24 +364,26 @@ local function OnCreate()
 
     --// Get HugeAmount
     print("[HugeAmount] Started")
+    local WaitedTime = 0
     firesignal(Player.PlayerGui:WaitForChild("Main"):WaitForChild("BottomButtons"):WaitForChild("BUTTONS"):WaitForChild("Inventory").Activated)
     local Pets = Player.PlayerGui:WaitForChild("Inventory"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Pets"):WaitForChild("Pets")
     while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 do
-        task.wait()
+        task.wait(Const.WAIT.SUPER_SHORT)
+        WaitedTime += Const.WAIT.SUPER_SHORT
+        if WaitedTime >= Const.WAIT.NORMAL then
+            WaitedTime = 0
+            firesignal(Player.PlayerGui:WaitForChild("Main"):WaitForChild("BottomButtons"):WaitForChild("BUTTONS"):WaitForChild("Inventory").Activated)
+        end
     end
     for _, Item in ipairs(Pets:GetChildren()) do
         if Item.ClassName == "TextButton" and Item:WaitForChild("Strength").Text == "???" then
             HugeAmount += 1
         end
     end
-    task.wait(Const.WAIT.NORMAL)
     Player.PlayerGui:WaitForChild("Inventory").Enabled = false
-    task.wait()
-    while not Player.PlayerGui:WaitForChild("Inventory").Enabled do
-        task.wait()
+    while task.wait() and not Player.PlayerGui:WaitForChild("Inventory").Enabled  do
         Player.PlayerGui:WaitForChild("Inventory").Enabled = false
     end
-    task.wait()
     print("[HugeAmount] " , HugeAmount)
     print("[HugeAmount] Finished")
 
@@ -383,6 +398,7 @@ local function OnCreate()
         if IsServerViable() then
             print("[OnCreate] Server Viable")
             ClaimBooth()
+            task.wait(Const.WAIT.NORMAL)
             CreateListing()
             Process()
         else
