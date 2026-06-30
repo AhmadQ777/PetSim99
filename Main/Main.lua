@@ -211,7 +211,7 @@ local function CreateListing()
     print("[CreateListing] 0")
     FireUntilProperty(
         Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated,
-        BoothPrompt
+        BoothPrompt,
         "Enabled",
         true
     )
