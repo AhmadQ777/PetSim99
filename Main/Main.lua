@@ -227,24 +227,19 @@ local function CreateListing()
             if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
                 local Image = Pet.Icon.Image
                 local button = Pet -- anpassen
-                while task.wait(1) do
-                    print("=== CHECK BUTTON EVENTS ===")
-
-                    local events = {
-                        Activated = button.Activated,
-                        MouseButton1Click = button.MouseButton1Click,
-                        MouseButton1Down = button.MouseButton1Down,
-                        MouseButton1Up = button.MouseButton1Up,
-                    }
-                    
-                    for name, signal in pairs(events) do
-                        local ok, connections = pcall(getconnections, signal)
-
-                        if ok then
-                            print(name .. " -> " .. #connections)
-                        else
-                            print(name .. " -> no access")
-                        end
+                print("=== CHECK BUTTON EVENTS ===")
+                local events = {
+                    Activated = button.Activated,
+                    MouseButton1Click = button.MouseButton1Click,
+                    MouseButton1Down = button.MouseButton1Down,
+                    MouseButton1Up = button.MouseButton1Up,
+                }
+                for name, signal in pairs(events) do
+                    local ok, connections = pcall(getconnections, signal)
+                    if ok then
+                        print(name .. " -> " .. #connections)
+                    else
+                        print(name .. " -> no access")
                     end
                 end
                 print("[CreateListing] 2")
