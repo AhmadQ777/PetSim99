@@ -385,7 +385,12 @@ local function OnCreate()
     local Changelog = Player.PlayerGui:WaitForChild("Changelog")
     Changelog:GetPropertyChangedSignal("Enabled"):Connect(function()
         if Changelog.Enabled then
-            firesignal(Changelog:WaitForChild("Frame"):WaitForChild("ContentFrame"):WaitForChild("Ok").Activated)
+            FireUntilProperty(
+                Changelog:WaitForChild("Frame"):WaitForChild("ContentFrame"):WaitForChild("Ok").Activated,
+                Changelog,
+                "Enabled",
+                false
+            )
         end
     end)
 
@@ -395,7 +400,12 @@ local function OnCreate()
     local LoginStreak = Player.PlayerGui:WaitForChild("LoginStreak")
     LoginStreak:GetPropertyChangedSignal("Enabled"):Connect(function()
         if LoginStreak.Enabled then
-            firesignal(LoginStreak:WaitForChild("Frame"):WaitForChild("ItemsFrame"):WaitForChild("Free"):WaitForChild("Button").Activated)
+            FireUntilProperty(
+                LoginStreak:WaitForChild("Frame"):WaitForChild("ItemsFrame"):WaitForChild("Free"):WaitForChild("Button").Activated,
+                LoginStreak,
+                "Enabled",
+                false
+            )
         end
     end)
 
