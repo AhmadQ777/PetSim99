@@ -369,8 +369,9 @@ local function OnCreate()
             HugeAmount += 1
         end
     end
-    task.wait(Const.WAIT.SHORT)
+    task.wait(Const.WAIT.NORMAL)
     Player.PlayerGui:WaitForChild("Inventory").Enabled = false
+    task.wait()
     while not Player.PlayerGui:WaitForChild("Inventory").Enabled do
         task.wait()
         Player.PlayerGui:WaitForChild("Inventory").Enabled = false
