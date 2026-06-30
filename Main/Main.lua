@@ -226,8 +226,7 @@ local function CreateListing()
         for _, Pet in ipairs(InventorySelect:WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filters"):WaitForChild("Pet"):WaitForChild("Holder"):GetChildren()) do
             if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
                 local Image = Pet.Icon.Image
-                local ConfirmButton = InventorySelect:WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm")
-                local button = ConfirmButton -- anpassen
+                local button = Pet -- anpassen
                 while task.wait(1) do
                     print("=== CHECK BUTTON EVENTS ===")
 
@@ -237,7 +236,7 @@ local function CreateListing()
                         MouseButton1Down = button.MouseButton1Down,
                         MouseButton1Up = button.MouseButton1Up,
                     }
-
+                    
                     for name, signal in pairs(events) do
                         local ok, connections = pcall(getconnections, signal)
 
@@ -249,6 +248,7 @@ local function CreateListing()
                     end
                 end
                 print("[CreateListing] 2")
+                local ConfirmButton = InventorySelect:WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm")
                 FireUntilProperty(
                     Pet.MouseButton1Click,
                     ConfirmButton,
