@@ -258,15 +258,7 @@ local function ScanMarketplace()
                 print("[ScanMarketplace] HugeAmount:", HugeAmount)
             end
             if HugeAmount >= Const.GAME.MINIMUM_HUGES_TO_SELL then
-                print("[ScanMarketplace] Enough Huges Sell Huges")
-                if IsServerViable() then
-                    ClaimBooth()
-                    CreateListing()
-                    Process()
-                    return
-                else
-                    break
-                end
+                break
             end
         end
     end
