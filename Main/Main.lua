@@ -195,8 +195,6 @@ local function CreateListing()
     local BoothPrompt = Player.PlayerGui:WaitForChild("BoothPrompt")
     local PostButton = BoothPrompt:WaitForChild("Frame"):WaitForChild("Slots"):WaitForChild("Items"):WaitForChild("SlotsSection"):WaitForChild("Slots"):WaitForChild("Post"):WaitForChild("Post")
     local InventorySelect = Player.PlayerGui:WaitForChild("InventorySelect")
-    
-    
     local TextInput = Player.PlayerGui:WaitForChild("_MISC"):WaitForChild("TextInput")
     local PriceInput = TextInput:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("CURRENCY"):WaitForChild("Input"):WaitForChild("Input")
     local SubmitButton = TextInput:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("CURRENCY"):WaitForChild("Ok")
