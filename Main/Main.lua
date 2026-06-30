@@ -223,7 +223,7 @@ local function CreateListing()
             "Enabled",
             true
         )
-        for Pet in ipairs(InventorySelect:WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filters"):WaitForChild("Pet"):WaitForChild("Holder"):GetChildren()) do
+        for _, Pet in ipairs(InventorySelect:WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filters"):WaitForChild("Pet"):WaitForChild("Holder"):GetChildren()) do
             if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
                 local Image = Pet.Icon.Image
                 print("[CreateListing] 2")
