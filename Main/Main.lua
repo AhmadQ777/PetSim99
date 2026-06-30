@@ -194,6 +194,9 @@ local function CreateListing()
     print("[CreateListing] GETTING ALL VARIABLES NEEDED")
     local BoothPrompt = Player.PlayerGui:WaitForChild("BoothPrompt")
     local PostButton = BoothPrompt:WaitForChild("Frame"):WaitForChild("Slots"):WaitForChild("Items"):WaitForChild("SlotsSection"):WaitForChild("Slots"):WaitForChild("Post"):WaitForChild("Post")
+    local InventorySelect = Player.PlayerGui:WaitForChild("InventorySelect")
+    
+    
     local TextInput = Player.PlayerGui:WaitForChild("_MISC"):WaitForChild("TextInput")
     local PriceInput = TextInput:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("CURRENCY"):WaitForChild("Input"):WaitForChild("Input")
     local SubmitButton = TextInput:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("CURRENCY"):WaitForChild("Ok")
@@ -222,11 +225,11 @@ local function CreateListing()
             "Enabled",
             true
         )
-        for Pet in ipairs(Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filters"):WaitForChild("Pet"):WaitForChild("Holder"):GetChildren()) do
+        for Pet in ipairs(InventorySelect:WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filters"):WaitForChild("Pet"):WaitForChild("Holder"):GetChildren()) do
             if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
                 local Image = Pet.Icon.Image
                 print("[CreateListing] 2")
-                local ConfirmButton = Player.PlayerGui:WaitForChild("InventorySelect"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm")
+                local ConfirmButton = InventorySelect:WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm")
                 FireUntilProperty(
                     Pet.Activated,
                     ConfirmButton,
