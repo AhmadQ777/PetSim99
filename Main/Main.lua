@@ -209,6 +209,22 @@ local function CreateListing()
     end    
     task.wait(Const.WAIT.SUPER_SHORT)
     print("[CreateListing] 0")
+    local button = Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button") -- anpassen
+    print("=== CHECK BUTTON EVENTS ===")
+    local events = {
+        Activated = button.Activated,
+        MouseButton1Click = button.MouseButton1Click,
+        MouseButton1Down = button.MouseButton1Down,
+        MouseButton1Up = button.MouseButton1Up,
+    }
+    for name, signal in pairs(events) do
+        local ok, connections = pcall(getconnections, signal)
+        if ok then
+            print(name .. " -> " .. #connections)
+        else
+            print(name .. " -> no access")
+        end
+    end
     FireUntilProperty(
         Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated,
         BoothPrompt,
