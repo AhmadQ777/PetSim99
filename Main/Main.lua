@@ -194,6 +194,9 @@ local function CreateListing()
     print("[CreateListing] GETTING ALL VARIABLES NEEDED")
     local BoothPrompt = Player.PlayerGui:WaitForChild("BoothPrompt")
     local PostButton = BoothPrompt:WaitForChild("Frame"):WaitForChild("Slots"):WaitForChild("Items"):WaitForChild("SlotsSection"):WaitForChild("Slots"):WaitForChild("Post"):WaitForChild("Post")
+    local InventorySelect = Player.PlayerGui:WaitForChild("InventorySelect")
+    local InventorySelectPets = InventorySelect:WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filters"):WaitForChild("Pet"):WaitForChild("Holder")
+    local ConfirmButton = InventorySelect:WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm")
     local TextInput = Player.PlayerGui:WaitForChild("_MISC"):WaitForChild("TextInput")
     local PriceInput = TextInput:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("CURRENCY"):WaitForChild("Input"):WaitForChild("Input")
     local SubmitButton = TextInput:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("CURRENCY"):WaitForChild("Ok")
@@ -207,12 +210,58 @@ local function CreateListing()
         end
     end    
     task.wait(Const.WAIT.SUPER_SHORT)
-    firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
-
+    print("[CreateListing] 0")
+    FireUntilProperty(
+        Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated,
+        BoothPrompt,
+        "Enabled",
+        true
+    )
     for _ = 1,HugeAmount do
-        
+        print("[CreateListing] 1")
+        FireUntilProperty(
+            PostButton.Activated,
+            InventorySelect,
+            "Enabled",
+            true
+        )
+        for Pet in ipairs(InventorySelectPets:GetChildren()) do
+            if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
+                local Image = Pet.Icon.Image
+                print("[CreateListing] 2")
+                FireUntilProperty(
+                    Pet.Activated,
+                    ConfirmButton,
+                    "Visible",
+                    true
+                )
+                print("[CreateListing] 3")
+                FireUntilProperty(
+                    ConfirmButton.Activated,
+                    InventorySelect,
+                    "Enabled",
+                    false
+                )
+                print("[CreateListing] 4")
+                PriceInput.Text = (Data[Image] or 35000000) + Const.GAME.HUGE_SELLING_BASE_ADDED_AMOUNT
+                FireUntilProperty(
+                    SubmitButton.Activated,
+                    Message,
+                    "Enabled",
+                    true
+                )
+                print("[CreateListing] 5")
+                FireUntilProperty(
+                    AcceptButton.Activated,
+                    BoothPrompt,
+                    "Enabled",
+                    true
+                )
+                task.wait(Const.WAIT.SUPER_SHORT)
+                break
+            end
+        end
     end
-
     print("[CreateListing] HugeAmount:", HugeAmount)
     print("[CreateListing] Listed Children:", #ListedItems:GetChildren() - 2)
     if HugeAmount ~= #ListedItems:GetChildren() - 2 then
