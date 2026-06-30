@@ -431,7 +431,7 @@ local function OnCreate()
     local WaitedTime = 0
     firesignal(Player.PlayerGui:WaitForChild("Main"):WaitForChild("BottomButtons"):WaitForChild("BUTTONS"):WaitForChild("Inventory").Activated)
     local Pets = Player.PlayerGui:WaitForChild("Inventory"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Pets"):WaitForChild("Pets")
-    while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 do
+    while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 or Player.PlayerGui:WaitForChild("Inventory").Enabled == false do
         task.wait(Const.WAIT.SUPER_SHORT)
         WaitedTime += Const.WAIT.SUPER_SHORT
         if WaitedTime >= Const.WAIT.NORMAL then
@@ -444,7 +444,6 @@ local function OnCreate()
             HugeAmount += 1
         end
     end
-
     Player.PlayerGui:WaitForChild("Inventory").Enabled = false
     while task.wait() and not Player.PlayerGui:WaitForChild("Inventory").Enabled  do
         Player.PlayerGui:WaitForChild("Inventory").Enabled = false
