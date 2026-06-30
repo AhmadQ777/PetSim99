@@ -209,18 +209,12 @@ local function CreateListing()
     end    
     task.wait(Const.WAIT.SUPER_SHORT)
     print("[CreateListing] 0")
-    local WaitedTime = 0
-    repeat
-        local InteractButton = Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button")
-        if WaitedTime >= Const.WAIT.NORMAL and InteractButton and InteractButton.Parent then
-            firesignal(InteractButton.Activated)
-        end
-        task.wait(Const.WAIT.SUPER_SHORT) 
-        WaitedTime += Const.WAIT.SUPER_SHORT
-        if BoothPrompt.Enabled then
-            break
-        end
-    until false
+    FireUntilProperty(
+        Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated,
+        BoothPrompt
+        "Enabled",
+        true
+    )
     for _ = 1,HugeAmount do
         print("[CreateListing] 1")
         FireUntilProperty(
