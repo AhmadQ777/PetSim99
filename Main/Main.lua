@@ -154,7 +154,7 @@ local function FireUntilProperty(Signal, Object, Property, Value)
     local WaitedTime = 0
     while task.wait(Const.WAIT.SUPER_SHORT) do
         if Object[Property] == Value then
-            break
+            return
         end
         WaitedTime += Const.WAIT.SUPER_SHORT
         if WaitedTime >= Const.WAIT.NORMAL then
@@ -266,7 +266,8 @@ local function ScanMarketplace()
             continue
         end
         for _, Item in ipairs(PetScroll:GetChildren()) do
-            if Item.Parent and Item.ClassName == "Frame" and Data[Item.Holder.ItemSlot.Icon.Image] ~= nil and Data[Item.Holder.ItemSlot.Icon.Image] <= Const.GAME.MAX_PRICE_BUYING_HUGE and Data[Item.Holder.ItemSlot.Icon.Image] - Const.GAME.MINIMUM_BUYING_HUGE_UNDER_PRICE >= ConvertNumber(Item.Buy.Cost.ContentText) then
+            if (Item.Parent and Item.ClassName == "Frame" and Data[Item.Holder.ItemSlot.Icon.Image] ~= nil and Data[Item.Holder.ItemSlot.Icon.Image] <= Const.GAME.MAX_PRICE_BUYING_HUGE and
+                Data[Item.Holder.ItemSlot.Icon.Image] - Const.GAME.MINIMUM_BUYING_HUGE_UNDER_PRICE >= ConvertNumber(Item.Buy.Cost.ContentText)) and #Item:GetChildren() == 0 then
                 print(
                     "[ScanMarketplace] Found Candidate:",
                     Item.Name,
