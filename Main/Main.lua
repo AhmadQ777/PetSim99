@@ -181,17 +181,14 @@ end
 
 local function CheckMobileButtonEvents(button, name)
     print("=== MOBILE BUTTON EVENTS:", name or tostring(button), "===")
-
     local events = {
         Activated = button.Activated,
         MouseButton1Click = button.MouseButton1Click,
         MouseButton1Down = button.MouseButton1Down,
         MouseButton1Up = button.MouseButton1Up,
     }
-
     for eventName, signal in pairs(events) do
         local ok, connections = pcall(getconnections, signal)
-
         if ok then
             print(eventName .. " -> " .. #connections)
         else
@@ -249,7 +246,6 @@ local function CreateListing()
         for _, Pet in ipairs(InventorySelect:WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("FilteredItems"):WaitForChild("Filters"):WaitForChild("Pet"):WaitForChild("Holder"):GetChildren()) do
             if Pet.ClassName == "TextButton" and Pet.Strength.Text == "???" then
                 local Image = Pet.Icon.Image
-                CheckMobileButtonEvents(Pet, "Pet")
                 print("[CreateListing] 2")
                 local ConfirmButton = InventorySelect:WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Confirm")
                 FireUntilProperty(
