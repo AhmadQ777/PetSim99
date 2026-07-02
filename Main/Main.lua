@@ -11,7 +11,7 @@ local UserId = Player.UserId
 
 --// Decalaring Const Variables
 local Const = {
-    Input = {
+    INPUT = {
         UserInputType = Enum.UserInputType.MouseButton1,
         UserInputState = Enum.UserInputState.Begin,
     },
@@ -183,25 +183,6 @@ local function FireUntilProperty(Signal, Object, Property, Value)
 end
 
 
-local function CheckMobileButtonEvents(button, name)
-    print("=== MOBILE BUTTON EVENTS:", name or tostring(button), "===")
-    local events = {
-        Activated = button.Activated,
-        MouseButton1Click = button.MouseButton1Click,
-        MouseButton1Down = button.MouseButton1Down,
-        MouseButton1Up = button.MouseButton1Up,
-    }
-    for eventName, signal in pairs(events) do
-        local ok, connections = pcall(getconnections, signal)
-        if ok then
-            print(eventName .. " -> " .. #connections)
-        else
-            print(eventName .. " -> no access / unsupported")
-        end
-    end
-end
-
-
 local function CreateListing()
     print("[CreateListing] Started")
     local ListedItems
@@ -230,10 +211,10 @@ local function CreateListing()
             break
         end
     end    
-    task.wait(Const.WAIT.SUPER_SHORT)
     print("[CreateListing] 0")
-    CheckMobileButtonEvents(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button"), "Interact")
-    firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").InputBegan)
+    firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").InputBegan, Const.INPUT)
+    task.wait(Const.WAIT.SUPER_SHORT)
+    firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").InputEnded, Const.INPUT)
     for _ = 1,HugeAmount do
         print("[CreateListing] 1")
         FireUntilProperty(
@@ -396,7 +377,6 @@ local function OnCreate()
     --// Remove Changelog
     print("[Changelog] Setting up GetPropertyChangedSignal")
     local Changelog = Player.PlayerGui:WaitForChild("Changelog")
-    CheckMobileButtonEvents(Changelog:WaitForChild("Frame"):WaitForChild("ContentFrame"):WaitForChild("Ok"), "ChangelogButton")
     Changelog:GetPropertyChangedSignal("Enabled"):Connect(function()
         if Changelog.Enabled then
             FireUntilProperty(
@@ -412,7 +392,6 @@ local function OnCreate()
     --// Remove Loginstreak
     print("[LoginStreak] Setting up GetPropertyChangedSignal")
     local LoginStreak = Player.PlayerGui:WaitForChild("LoginStreak")
-    CheckMobileButtonEvents(LoginStreak:WaitForChild("Frame"):WaitForChild("ItemsFrame"):WaitForChild("Free"):WaitForChild("Button"), "LoginStreakButton")
     LoginStreak:GetPropertyChangedSignal("Enabled"):Connect(function()
         if LoginStreak.Enabled then
             FireUntilProperty(
