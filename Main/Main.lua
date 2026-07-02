@@ -229,12 +229,7 @@ local function CreateListing()
     task.wait(Const.WAIT.SUPER_SHORT)
     print("[CreateListing] 0")
     CheckMobileButtonEvents(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button"), "Interact")
-    FireUntilProperty(
-        Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated,
-        BoothPrompt,
-        "Enabled",
-        true
-    )
+    firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").InputBegan)
     for _ = 1,HugeAmount do
         print("[CreateListing] 1")
         FireUntilProperty(

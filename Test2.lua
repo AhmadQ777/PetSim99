@@ -1,0 +1,5 @@
+firesignal(game:GetService("Players").LocalPlayer.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").InputBegan)
+print("1")
+task.wait(10)
+firesignal(game:GetService("Players").LocalPlayer.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").InputEnded)
+print("2")
