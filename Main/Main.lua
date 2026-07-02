@@ -411,18 +411,22 @@ local function OnCreate()
     while Pets:GetChildren() == nil or #Pets:GetChildren() - 1 == 0 or Player.PlayerGui:WaitForChild("Inventory").Enabled == false do
         task.wait(Const.WAIT.SUPER_SHORT)
         WaitedTime += Const.WAIT.SUPER_SHORT
-        if WaitedTime >= Const.WAIT.NORMAL then
+        if WaitedTime >= Const.WAIT.LONG then
+            Player.PlayerGui:WaitForChild("Inventory"):WaitForChild("Frame"):WaitForChild("Main"):WaitForChild("Pets"):WaitForChild("Pets").Enabled = true
+            break
+        end
+        if WaitedTime % Const.WAIT.NORMAL == 0 then
             WaitedTime = 0
             firesignal(Player.PlayerGui:WaitForChild("Main"):WaitForChild("BottomButtons"):WaitForChild("BUTTONS"):WaitForChild("Inventory").Activated)
         end
     end
+    print("[HugeAmount] half finished")
     for _, Item in ipairs(Pets:GetChildren()) do
         if Item.ClassName == "TextButton" and Item:WaitForChild("Strength").Text == "???" then
             HugeAmount += 1
         end
     end
-    Player.PlayerGui:WaitForChild("Inventory").Enabled = false
-    while task.wait() and not Player.PlayerGui:WaitForChild("Inventory").Enabled do
+    while not Player.PlayerGui:WaitForChild("Inventory").Enabled and task.wait() do
         Player.PlayerGui:WaitForChild("Inventory").Enabled = false
     end
     print("[HugeAmount] " , HugeAmount)
