@@ -426,7 +426,7 @@ local function OnCreate()
             HugeAmount += 1
         end
     end
-    while not Player.PlayerGui:WaitForChild("Inventory").Enabled and task.wait() do
+    while Player.PlayerGui:WaitForChild("Inventory").Enabled and task.wait() do
         Player.PlayerGui:WaitForChild("Inventory").Enabled = false
     end
     print("[HugeAmount] " , HugeAmount)
