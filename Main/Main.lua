@@ -54,34 +54,16 @@ local HugeAmount = 0
 --// Intialize Functions
 local function Teleport(TeleportToPerform)
     print("[Teleport] Called:", TeleportToPerform)
-
     if TeleportToPerform == Const.TELEPORT.ACTION.REHOP_SERVER then
         print("[Teleport] REHOP_SERVER")
         if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
         else    
             HRT:PivotTo(game.Workspace:WaitForChild("TradingPlaza"):WaitForChild("INTERACT"):WaitForChild("Machines"):WaitForChild("TradingTerminal_Machine"):WaitForChild("PadDecor").CFrame)
         end
-
     elseif TeleportToPerform == Const.TELEPORT.ACTION.TELEPORT_TO_OTHER_PLACE then
         task.wait(Const.WAIT.NORMAL)
         print("[Teleport] TELEPORT_TO_OTHER_PLACE")
-        --// Telport to other place
-        if game.PlaceId == Const.GAME.START_LOBBY_PLACE_ID then
-            print("[Teleport] START_LOBBY_PLACE_ID")
-            HRT.Position = Const.GAME.TRADING_PLAZA_ENTER_PORTAL_POSITION
-        else
-            print("[Teleport] TRADING_PLAZA_PLACE_ID")
-            repeat
-                HRT:PivotTo(Const.TELEPORT.POSITION.HRT)
-                task.wait(Const.WAIT.SHORT)    
-            until (HRT.Position - Const.TELEPORT.POSITION.HRT).Magnitude < 5
-            firesignal(Player.PlayerGui:WaitForChild("Interact"):WaitForChild("Button").Activated)
-            local Message = Player.PlayerGui:WaitForChild("Message")
-            while not Message.Enabled do
-                Message:GetPropertyChangedSignal("Enabled"):Wait()
-            end
-            firesignal(Message:WaitForChild("Frame"):WaitForChild("Contents"):WaitForChild("Yes").Activated)
-        end
+        HRT.Position = Const.GAME.TRADING_PLAZA_ENTER_PORTAL_POSITION
     end
 end
 
