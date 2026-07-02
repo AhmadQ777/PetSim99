@@ -11,6 +11,10 @@ local UserId = Player.UserId
 
 --// Decalaring Const Variables
 local Const = {
+    Input = {
+        UserInputType = Enum.UserInputType.MouseButton1,
+        UserInputState = Enum.UserInputState.Begin,
+    },
     GAME = {
         HUGE_SELLING_BASE_ADDED_AMOUNT = 1190000,
         MINIMUM_BUYING_HUGE_UNDER_PRICE = 500000,
